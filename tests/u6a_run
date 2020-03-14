@@ -18,8 +18,8 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ##
 
-U6A_BYTECODE=`echo $3 | $1 - | base64 -w 0`
-if [ -z $U6A_BYTECODE ]; then exit -1; fi
-cat <(echo $U6A_BYTECODE | base64 -d) <(test $4 && cat $4) | $2 -
+U6A_BYTECODE=`echo $4 | $1 - | $3`
+test -z $U6A_BYTECODE && exit -1
+cat <(echo $U6A_BYTECODE | base64 -d) <(test $5 && cat $5) | $2 -
 
-# Usage: ./u6a_run /path/to/u6ac/bin /path/to/u6a/bin source_code [input]
+# Usage: ./u6a_run /path/to/u6ac/bin /path/to/u6a/bin /path/to/base64/bin source_code [input]

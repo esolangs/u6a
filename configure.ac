@@ -11,10 +11,12 @@ case "${host_os}" in
     linux*)
         AC_SUBST([MANPATH_CONF],  [/etc/manpath.config])
         AC_SUBST([REBUILD_MANDB], [mandb])
+        AC_SUBST([BASE64_FLAGS],  [-w0])
         ;;
     darwin*)
         AC_SUBST([MANPATH_CONF],  [/private/etc/man.conf])
         AC_SUBST([REBUILD_MANDB], [/usr/libexec/makewhatis])
+        AC_SUBST([BASE64_FLAGS],  [-b0])
         ;;
     *)
         AC_MSG_ERROR(["Unsupported OS: ${host_os}"])

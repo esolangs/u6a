@@ -19,10 +19,11 @@
 
 set tool "default"
 set timeout 1
+global B64_FLAGS
 
 set rand_str_list { }
 for { set i 100 } { $i < 200 } { incr i } {
-    lappend rand_str_list [ exec head -c $i /dev/urandom | base64 -w 0 ]
+    lappend rand_str_list [ exec head -c $i /dev/urandom | base64 $B64_FLAGS ]
 }
 
 u6a_run "```s`d`@|i`ci" - - 1
