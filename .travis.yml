@@ -15,6 +15,7 @@ addons:
     packages:
       - dejagnu
   homebrew:
+    update: true
     packages:
       - dejagnu
 
