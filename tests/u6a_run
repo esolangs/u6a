@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+##
+## u6a_run - helper script for running tests for u6a
+## 
+## Copyright (C) 2020  CismonX <admin@cismon.net>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
+##
+
+U6A_BYTECODE=`echo $3 | $1 - | base64 -w 0`
+if [ -z $U6A_BYTECODE ]; then exit -1; fi
+cat <(echo $U6A_BYTECODE | base64 -d) <(test $4 && cat $4) | $2 -
+
+# Usage: ./u6a_run /path/to/u6ac/bin /path/to/u6a/bin source_code [input]

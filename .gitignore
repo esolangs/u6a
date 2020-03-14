@@ -32,5 +32,9 @@ aclocal.m4
 u6ac
 u6a
 
+# DejaGnu
+*.sum
+site.*
+
 # others
 *.log

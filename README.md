@@ -18,6 +18,8 @@ Building:
 ```bash
 # (If not already) Install the required build tools.
 sudo apt install build-essential automake
+# (If you want to run tests) Install DejaGnu.
+sudo apt install dejagnu
 # Generate configuration script.
 autoreconf --install
 # Execute configuration script with desired options.

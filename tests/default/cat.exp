@@ -1,0 +1,41 @@
+##
+## cat.exp - Test whether a "cat" program works on this u6a build
+## 
+## Copyright (C) 2020  CismonX <admin@cismon.net>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
+##
+
+set tool "default"
+set timeout 1
+
+set rand_str_list { }
+for { set i 100 } { $i < 200 } { incr i } {
+    lappend rand_str_list [ exec head -c $i /dev/urandom | base64 -w 0 ]
+}
+
+u6a_run "```s`d`@|i`ci" - - 1
+for { set i 0 } { $i < [ llength $rand_str_list ] } { incr i } {
+    set rand_str [ lindex $rand_str_list $i ]
+    send -- "$rand_str\r"
+    expect {
+        $rand_str {
+            pass "case $i ok!"
+        }
+        default {
+            fail "case $i fails!"
+        }
+    }
+}
+u6a_stop 1

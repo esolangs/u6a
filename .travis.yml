@@ -10,6 +10,14 @@ compiler:
   - gcc
   - clang
 
+addons:
+  apt:
+    packages:
+      - dejagnu
+  homebrew:
+    packages:
+      - dejagnu
+
 branches:
   only:
     - master
