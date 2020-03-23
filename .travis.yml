@@ -23,12 +23,16 @@ branches:
   only:
     - master
 
+before_script:
+  - export GCOV_BIN=`test $TRAVIS_COMPILER = clang && echo 'llvm-cov gcov' || echo gcov`
+  - test $TRAVIS_OS_NAME = osx && export PATH=$PATH:/Library/Developer/CommandLineTools/usr/bin || true
+
 script:
   - autoreconf --install
   - ./configure CFLAGS='-O0 -g -coverage'
   - make
   - make check
-  - gcov src/*.c
+  - $GCOV_BIN src/*.c
   - sudo make install
   - command -v u6a u6ac
 # - whatis u6a u6ac      # broken on macOS...
