@@ -18,7 +18,7 @@
 ##
 
 set tool "default"
-set timeout 1
+set timeout 5
 
 # The following code is a modified version of ftp://ftp.madore.org/pub/madore/unlambda/CUAN/Square.unl
 # Written by Panu Kalliokoski <Panu.Kalliokoski@nokia.com>

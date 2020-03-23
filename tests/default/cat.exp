@@ -18,7 +18,7 @@
 ##
 
 set tool "default"
-set timeout 1
+set timeout 5
 global B64_ENCODE
 
 set rand_str_list { }
