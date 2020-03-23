@@ -36,5 +36,10 @@ u6a
 *.sum
 site.*
 
+# gcov
+*.gcov
+*.gcda
+*.gcno
+
 # others
 *.log

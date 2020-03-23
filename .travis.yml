@@ -25,9 +25,13 @@ branches:
 
 script:
   - autoreconf --install
-  - ./configure
+  - ./configure CFLAGS='-O0 -g -coverage'
   - make
   - make check
+  - gcov src/*.c
   - sudo make install
   - command -v u6a u6ac
 # - whatis u6a u6ac      # broken on macOS...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
