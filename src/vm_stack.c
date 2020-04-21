@@ -208,7 +208,7 @@ u6a_vm_stack_pop() {
         active_stack = vs;
         return false;
     }
-    if (active_stack->refcnt-- > 1) {
+    if (--active_stack->refcnt > 0) {
         active_stack = vm_stack_dup(active_stack);
     }
     if (UNLIKELY(active_stack == NULL)) {
@@ -216,6 +216,7 @@ u6a_vm_stack_pop() {
         return false;
     };
     free(vs);
+    --active_stack->top;
     return true;
 }
 

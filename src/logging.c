@@ -109,7 +109,7 @@ u6a_err_invalid_uint(const char* stage, const char* str) {
 
 U6A_COLD void
 u6a_err_uint_not_in_range(const char* stage, uint32_t min_val, uint32_t max_val, uint32_t got) {
-    fprintf(stderr, "%s: [%s] Integer out of range - [%" PRIu32 ", %" PRIu32 "] expected, %" PRIu32 " given.",
+    fprintf(stderr, "%s: [%s] Integer out of range - [%" PRIu32 ", %" PRIu32 "] expected, %" PRIu32 " given.\n",
         prog_name, stage, min_val, max_val, got);
 }
 
