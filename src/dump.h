@@ -1,5 +1,5 @@
 /*
- * codegen.h - Unlambda VM bytecode generator definitions
+ * dump.h - dump utility definitions
  * 
  * Copyright (C) 2020  CismonX <admin@cismon.net>
  *
@@ -17,22 +17,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef U6A_CODEGEN_H_
-#define U6A_CODEGEN_H_
+#ifndef U6A_DUMP_H_
+#define U6A_DUMP_H_
 
-#include "common.h"
-#include "defs.h"
+#include "vm_defs.h"
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 
-void
-u6a_codegen_init(FILE* output_stream, const char* file_name, bool optimize_const, bool dump_mnemonics);
+#define U6A_HEXDUMP_BYTES_PER_LINE 16
 
 bool
-u6a_write_prefix(const char* prefix_string);
+u6a_dump_mnemonics(FILE* restrict output_stream, struct u6a_vm_ins* data, uint32_t length);
 
 bool
-u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len);
+u6a_dump_data(FILE* restrict output_stream, const char* data, uint32_t length);
 
 #endif

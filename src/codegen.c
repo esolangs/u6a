@@ -20,6 +20,7 @@
 #include "codegen.h"
 #include "logging.h"
 #include "vm_defs.h"
+#include "dump.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +38,7 @@
 static FILE*       output_stream;
 static const char* file_name;
 static bool        optimize_const;
+static bool        dump_mnemonics;
 
 static const char* err_codegen = "codegen error";
 static const char* info_codegen = "codegen";
@@ -65,6 +67,9 @@ write_bc_header(FILE* restrict output_stream, uint32_t text_len, uint32_t rodata
 
 bool
 u6a_write_prefix(const char* prefix_string) {
+    if (dump_mnemonics) {
+        return true;
+    }
     if (prefix_string == NULL) {
         return true;
     }
@@ -78,10 +83,11 @@ u6a_write_prefix(const char* prefix_string) {
 }
 
 void
-u6a_codegen_init(FILE* output_stream_, const char* file_name_, bool optimize_const_) {
+u6a_codegen_init(FILE* output_stream_, const char* file_name_, bool optimize_const_, bool dump_mnemonics_) {
     output_stream = output_stream_;
     file_name = file_name_;
     optimize_const = optimize_const_;
+    dump_mnemonics = dump_mnemonics_;
 }
 
 bool
@@ -194,13 +200,22 @@ u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len) {
             }
         }
     }
-    uint32_t write_len;
-    if (UNLIKELY(!write_bc_header(output_stream, text_len, rodata_len))) {
-        write_len = sizeof(struct u6a_bc_header);
-        goto codegen_failed;
+    uint32_t write_len = 0;
+    if (UNLIKELY(dump_mnemonics)) {
+        if (UNLIKELY(!u6a_dump_mnemonics(output_stream, text_buffer, text_len))) {
+            goto codegen_failed;
+        }
+        if (UNLIKELY(!u6a_dump_data(output_stream, rodata_buffer, rodata_len))) {
+            goto codegen_failed;
+        }
+    } else {
+        if (UNLIKELY(!write_bc_header(output_stream, text_len, rodata_len))) {
+            write_len = sizeof(struct u6a_bc_header);
+            goto codegen_failed;
+        }
+        WRITE_SECION(text_buffer, sizeof(struct u6a_vm_ins), text_len, output_stream);
+        WRITE_SECION(rodata_buffer, sizeof(char), rodata_len, output_stream);
     }
-    WRITE_SECION(text_buffer, sizeof(struct u6a_vm_ins), text_len, output_stream);
-    WRITE_SECION(rodata_buffer, sizeof(char), rodata_len, output_stream);
     free(bc_buffer);
     free(stack);
     u6a_info_verbose(info_codegen, "completed, text: %" PRIu32 ", rodata: %" PRIu32, text_len, rodata_len);

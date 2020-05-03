@@ -1,5 +1,5 @@
 /*
- * codegen.h - Unlambda VM bytecode generator definitions
+ * mnemonic.h - Unlambda mnemonics definitions
  * 
  * Copyright (C) 2020  CismonX <admin@cismon.net>
  *
@@ -17,22 +17,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef U6A_CODEGEN_H_
-#define U6A_CODEGEN_H_
+#ifndef U6A_MNEMONIC_H_
+#define U6A_MNEMONIC_H_
 
-#include "common.h"
-#include "defs.h"
+#include <stdint.h>
 
-#include <stdbool.h>
-#include <stdio.h>
+const char*
+u6a_mnemonic_op(uint8_t op);
 
-void
-u6a_codegen_init(FILE* output_stream, const char* file_name, bool optimize_const, bool dump_mnemonics);
+const char*
+u6a_mnemonic_op_ex(uint8_t op_ex);
 
-bool
-u6a_write_prefix(const char* prefix_string);
+const char*
+u6a_mnemonic_fn(uint8_t fn);
 
-bool
-u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len);
+const char*
+u6a_mnemonic_ch(uint8_t ch);
 
 #endif

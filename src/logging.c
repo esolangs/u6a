@@ -52,7 +52,7 @@ u6a_err_unexpected_eof(const char* stage, int after) {
 
 U6A_COLD void
 u6a_err_unprintable_ch(const char* stage, int got) {
-    fprintf(stderr, "%s[%s]: printable character or '\\n' expected, 0x%02X given.\n", prog_name, stage, got);
+    fprintf(stderr, "%s[%s]: printable character or '\\n' expected, 0x%02x given.\n", prog_name, stage, got);
 }
 
 U6A_COLD void
@@ -62,7 +62,7 @@ u6a_err_bad_ch(const char* stage, int got) {
     } else if (LIKELY(got == '\n')) {
         fprintf(stderr, E_UNRECOGNIZABLE_CHAR "'\\n'.\n", prog_name, stage);
     } else {
-        fprintf(stderr, E_UNRECOGNIZABLE_CHAR "0x%02X.\n", prog_name, stage, got);
+        fprintf(stderr, E_UNRECOGNIZABLE_CHAR "0x%02x.\n", prog_name, stage, got);
     }
 }
 
@@ -73,7 +73,11 @@ u6a_err_bad_syntax(const char* stage) {
 
 U6A_COLD void
 u6a_err_write_failed(const char* stage, size_t bytes, const char* filename) {
-    fprintf(stderr, "%s: [%s] failed writing %zu bytes to %s.\n", prog_name, stage, bytes, filename);
+    if (bytes > 0) {
+        fprintf(stderr, "%s: [%s] failed writing %zu bytes to %s.\n", prog_name, stage, bytes, filename);
+    } else {
+        fprintf(stderr, "%s: [%s] failed writing data to %s.\n", prog_name, stage, filename);
+    }
 }
 
 U6A_COLD void

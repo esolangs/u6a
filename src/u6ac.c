@@ -39,6 +39,7 @@ struct arg_options {
     char* output_file_prefix;
     char* output_file_name;
     bool  optimize_const;
+    bool  dump_mnemonics;
     bool  print_only;
 };
 
@@ -75,7 +76,7 @@ process_options(struct arg_options* options, int argc, char** argv) {
     bool verbose = false;
     char optimize_level = '1';
     while (true) {
-        int result = getopt_long(argc, argv, "o:O::vHV", long_opts, NULL);
+        int result = getopt_long(argc, argv, "o:O::SvHV", long_opts, NULL);
         if (result == -1) {
             break;
         }
@@ -93,6 +94,9 @@ process_options(struct arg_options* options, int argc, char** argv) {
                     break;
                 }
                 options->output_file_prefix = optarg ? optarg : "#!/usr/bin/env u6a\n";
+                break;
+            case 'S':
+                options->dump_mnemonics = true;
                 break;
             case 'v':
                 verbose = true;
@@ -208,7 +212,7 @@ main(int argc, char** argv) {
     if (UNLIKELY(options.output_file == NULL)) {
         goto terminate;
     }
-    u6a_codegen_init(options.output_file, options.output_file_name, options.optimize_const);
+    u6a_codegen_init(options.output_file, options.output_file_name, options.optimize_const, options.dump_mnemonics);
     if (UNLIKELY(!u6a_write_prefix(options.output_file_prefix))) {
         exit_code = EC_ERR_CODEGEN;
         goto terminate;
