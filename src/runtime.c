@@ -318,7 +318,11 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                     case u6a_vf_in:
                         current_char = fgetc(istream);
                         func = arg;
-                        arg.token.fn = current_char == EOF ? u6a_vf_v : u6a_vf_i;
+                        if (UNLIKELY(current_char == EOF)) {
+                            arg.token.fn = u6a_vf_v;
+                        } else {
+                            arg.token.fn = u6a_vf_i;
+                        }
                         goto do_apply;
                     case u6a_vf_cmp:
                         if (func.token.ch == current_char) {
@@ -345,7 +349,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                 }
                 break;
             case u6a_vo_sa:
-                if (acc.token.fn == u6a_vf_d) {
+                if (UNLIKELY(acc.token.fn == u6a_vf_d)) {
                     goto delay;
                 }
                 STACK_PUSH1(acc);
