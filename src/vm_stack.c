@@ -47,7 +47,7 @@ vm_stack_create(struct vm_stack* prev, uint32_t top) {
     }
     vs->prev = prev;
     vs->top = top;
-    vs->refcnt = 1;
+    vs->refcnt = 0;
     return vs;
 }
 
@@ -60,7 +60,7 @@ vm_stack_dup(struct vm_stack* vs) {
         return NULL;
     }
     memcpy(dup_stack, vs, sizeof(struct vm_stack) + (vs->top + 1) * sizeof(struct u6a_vm_var_fn));
-    dup_stack->refcnt = 1;
+    dup_stack->refcnt = 0;
     for (uint32_t idx = vs->top; idx < UINT32_MAX; --idx) {
         struct u6a_vm_var_fn elem = vs->elems[idx];
         if (elem.token.fn & U6A_VM_FN_REF) {
@@ -199,7 +199,7 @@ u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_
 U6A_HOT bool
 u6a_vm_stack_pop() {
     struct vm_stack* vs = active_stack;
-    if (LIKELY(vs->top-- < UINT32_MAX)) {
+    if (LIKELY(vs->top-- != UINT32_MAX)) {
         return true;
     }
     active_stack = vs->prev;
@@ -223,6 +223,22 @@ u6a_vm_stack_pop() {
 struct u6a_vm_var_fn
 u6a_vm_stack_xch(struct u6a_vm_var_fn v0) {
     struct vm_stack* vs = active_stack;
+    if (UNLIKELY(vs->top == UINT32_MAX)) {
+        active_stack = vs->prev;
+        if (UNLIKELY(active_stack == NULL)) {
+            active_stack = vs;
+            return (struct u6a_vm_var_fn) { 0 };
+        }
+        if (--active_stack->refcnt > 0) {
+            active_stack = vm_stack_dup(active_stack);
+        }
+        if (UNLIKELY(active_stack == NULL)) {
+            active_stack = vs;
+            return (struct u6a_vm_var_fn) { 0 };
+        };
+        free(vs);
+        vs = active_stack;
+    }
     struct u6a_vm_var_fn elem = vs->elems[vs->top - 1];
     vs->elems[vs->top - 1] = v0;
     return elem;
