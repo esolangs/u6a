@@ -153,13 +153,13 @@ process_options(struct arg_options* options, int argc, char** argv) {
             if (options->input_file == stdin) {
                 goto write_to_stdout;
             } else {
-                if (UNLIKELY(file_name_size + 3 > PATH_MAX - 1)) {
-                    u6a_err_path_too_long(err_toplevel, PATH_MAX - 1, file_name_size + 3);
+                if (UNLIKELY(file_name_size + 8 > PATH_MAX - 1)) {
+                    u6a_err_path_too_long(err_toplevel, PATH_MAX - 1, file_name_size + 8);
                     return false;
                 }
-                options->output_file_name = malloc((file_name_size + 4) * sizeof(char));
+                options->output_file_name = malloc((file_name_size + 9) * sizeof(char));
                 strcpy(options->output_file_name, options->input_file_name);
-                strcpy(options->output_file_name + file_name_size, ".bc\0");
+                strcpy(options->output_file_name + file_name_size, options->dump_mnemonics ? ".bc.dump\0" : ".bc\0");
             }
         } else if (strlen(options->output_file_name) == 1 && options->output_file_name[0] == '-') {
             write_to_stdout:

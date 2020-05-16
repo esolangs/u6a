@@ -12,7 +12,7 @@ Read and compile Unlambda code from the given \fIsource\-file\fR, or \fBSTDIN\fR
 .SH OPTIONS
 .TP
 \fB\-o\fR, \fB\-\-output\fR=\fIout\-file\fR
-Save compiled bytecode to \fIout\-file\fR, defaults to \fIsource\-file\fR name with ".bc" suffix, or \fBSTDOUT\fR if the source file is read from \fBSTDIN\fR.
+Save compiled bytecode to \fIout\-file\fR, defaults to \fIsource\-file\fR name with ".bc" (".bc.dump" if \fB\-S\fR option is enabled) suffix, or \fBSTDOUT\fR if the source file is read from \fBSTDIN\fR.
 .TP
 \fB\-\-add\-prefix\fR[=\fIprefix\-string\fR]
 Add \fIprefix\-string\fR to the beginning of \fIout\-file\fR. Defaults to "#!/usr/bin/env u6a\\n".
