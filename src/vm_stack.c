@@ -214,7 +214,7 @@ u6a_vm_stack_pop() {
     if (UNLIKELY(active_stack == NULL)) {
         active_stack = vs;
         return false;
-    };
+    }
     free(vs);
     --active_stack->top;
     return true;
@@ -223,24 +223,34 @@ u6a_vm_stack_pop() {
 struct u6a_vm_var_fn
 u6a_vm_stack_xch(struct u6a_vm_var_fn v0) {
     struct vm_stack* vs = active_stack;
-    if (UNLIKELY(vs->top == UINT32_MAX)) {
-        active_stack = vs->prev;
-        if (UNLIKELY(active_stack == NULL)) {
-            active_stack = vs;
+    struct u6a_vm_var_fn elem;
+    // XCH on segmented stacks is inefficient, perhaps there's a better solution?
+    if (LIKELY(vs->top != 0 && vs->top != UINT32_MAX)) {
+        elem = vs->elems[vs->top - 1];
+        vs->elems[vs->top - 1] = v0;
+    } else {
+        struct vm_stack* prev = vs->prev;
+        if (UNLIKELY(prev == NULL)) {
             return (struct u6a_vm_var_fn) { 0 };
         }
-        if (--active_stack->refcnt > 0) {
-            active_stack = vm_stack_dup(active_stack);
+        if (--prev->refcnt > 0) {
+            prev = vm_stack_dup(active_stack);
         }
         if (UNLIKELY(active_stack == NULL)) {
-            active_stack = vs;
             return (struct u6a_vm_var_fn) { 0 };
-        };
-        free(vs);
-        vs = active_stack;
+        }
+        if (vs->top == 0) {
+            ++prev->refcnt;
+            vs->prev = prev;
+            elem = prev->elems[prev->top];
+            prev->elems[prev->top] = v0;
+        } else {
+            free(vs);
+            active_stack = prev;
+            elem = prev->elems[prev->top - 1];
+            prev->elems[prev->top - 1] = v0;
+        }
     }
-    struct u6a_vm_var_fn elem = vs->elems[vs->top - 1];
-    vs->elems[vs->top - 1] = v0;
     return elem;
 }
 
