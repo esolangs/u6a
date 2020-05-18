@@ -76,6 +76,7 @@ vm_stack_dup(struct vm_stack* vs) {
 static inline void
 vm_stack_free(struct vm_stack* vs) {
     struct vm_stack* prev;
+    vs->refcnt = 1;
     do {
         prev = vs->prev;
         if (--vs->refcnt == 0) {
