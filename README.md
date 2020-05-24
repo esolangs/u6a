@@ -1,7 +1,7 @@
 # u6a
 
-[![Travis CI](https://travis-ci.com/CismonX/u6a.svg)](https://travis-ci.com/CismonX/u6a)
-[![Codecov](https://codecov.io/gh/CismonX/u6a/branch/master/graphs/badge.svg)](https://codecov.io/gh/CismonX/u6a)
+[![Travis CI](https://travis-ci.com/esolangs/u6a.svg)](https://travis-ci.com/esolangs/u6a)
+[![Codecov](https://codecov.io/gh/esolangs/u6a/branch/master/graphs/badge.svg)](https://codecov.io/gh/esolangs/u6a)
 [![LICENSE](https://img.shields.io/badge/licence-GPLv3-blue.svg)](LICENSE)
 
 Implementation of Unlambda, an esoteric programming language.
@@ -10,7 +10,7 @@ Implementation of Unlambda, an esoteric programming language.
 
 The u6a project provides a bytecode compiler and a runtime system for the [Unlambda](http://www.madore.org/~david/programs/unlambda/) programming language.
 
-Ideas behind this implementation can be found [here](https://github.com/CismonX/u6a/wiki/Developer's-Notes-on-Implementing-Unlambda).
+Ideas behind this implementation can be found [here](https://github.com/esolangs/u6a/wiki/Developer's-Notes-on-Implementing-Unlambda).
 
 ## Getting Started
 
