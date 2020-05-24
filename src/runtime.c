@@ -137,7 +137,7 @@ u6a_runtime_info(FILE* restrict input_stream, const char* file_name) {
     }
     printf("Version: %d.%d.X\n", header.file.ver_major, header.file.ver_minor);
     if (LIKELY(CHECK_BC_HEADER_VER(header.file))) {
-        if (LIKELY(header.file.prog_header_size == U6A_BC_FILE_HEADER_SIZE)) {
+        if (LIKELY(header.file.prog_header_size == U6A_BC_PROG_HEADER_SIZE)) {
             printf("Size of section .text   (bytes): 0x%08X\n", ntohl(header.prog.text_size));
             printf("Size of section .rodata (bytes): 0x%08X\n", ntohl(header.prog.rodata_size));
         } else {
@@ -283,8 +283,9 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         if (UNLIKELY(ptr == NULL)) {
                             goto runtime_error;
                         }
-                        ACC_FN_REF(u6a_vf_c1, u6a_vm_pool_alloc2_ptr(ptr, ins));
-                        break;
+                        func = arg;
+                        arg = U6A_VM_VAR_FN_REF(u6a_vf_c1, u6a_vm_pool_alloc2_ptr(ptr, ins));
+                        goto do_apply;
                     case u6a_vf_d:
                         ACC_FN_REF(u6a_vf_d1_c, u6a_vm_pool_alloc1(arg));
                         break;
