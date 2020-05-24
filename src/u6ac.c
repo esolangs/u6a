@@ -213,6 +213,7 @@ main(int argc, char** argv) {
         goto terminate;
     }
     u6a_codegen_init(options.output_file, options.output_file_name, options.optimize_const, options.dump_mnemonics);
+    u6a_info_verbose(info_toplevel, "writing to %s", options.output_file_name);
     if (UNLIKELY(!u6a_write_prefix(options.output_file_prefix))) {
         exit_code = EC_ERR_CODEGEN;
         goto terminate;

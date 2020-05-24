@@ -141,7 +141,7 @@ u6a_runtime_info(FILE* restrict input_stream, const char* file_name) {
             printf("Size of section .text   (bytes): 0x%08X\n", ntohl(header.prog.text_size));
             printf("Size of section .rodata (bytes): 0x%08X\n", ntohl(header.prog.rodata_size));
         } else {
-            printf("Program header unrecognizable (%d bytes)", header.file.prog_header_size);
+            printf("Program header unrecognizable (%d bytes)\n", header.file.prog_header_size);
         }
     }
     return true;
