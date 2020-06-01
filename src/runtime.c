@@ -300,8 +300,9 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         ACC_FN(arg);
                         break;
                     case u6a_vf_d1_c:
-                        func = u6a_vm_pool_get1(func.ref).fn;
-                        goto do_apply;
+                        STACK_PUSH2(VM_VAR_JMP, vm_var_fn_addref(u6a_vm_pool_get1(func.ref).fn));
+                        ACC_FN(arg);
+                        VM_JMP(0x03);
                     case u6a_vf_d1_s:
                         tuple = u6a_vm_pool_get2(func.ref);
                         STACK_PUSH1(tuple.v1.fn);
