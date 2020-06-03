@@ -235,10 +235,10 @@ u6a_vm_stack_xch(struct u6a_vm_var_fn v0) {
             return (struct u6a_vm_var_fn) { 0 };
         }
         if (--prev->refcnt > 0) {
-            prev = vm_stack_dup(active_stack);
-        }
-        if (UNLIKELY(active_stack == NULL)) {
-            return (struct u6a_vm_var_fn) { 0 };
+            prev = vm_stack_dup(prev);
+            if (UNLIKELY(prev == NULL)) {
+                return (struct u6a_vm_var_fn) { 0 };
+            }
         }
         if (vs->top == 0) {
             ++prev->refcnt;
