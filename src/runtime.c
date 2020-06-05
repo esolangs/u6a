@@ -206,7 +206,7 @@ u6a_runtime_init(struct u6a_runtime_options* options) {
     return false;
 }
 
-U6A_HOT union u6a_vm_var
+U6A_HOT struct u6a_vm_var_fn
 u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
     struct u6a_vm_var_fn acc = { 0 }, top = { 0 };
     struct u6a_vm_ins* ins = text + text_subst_len;
@@ -345,7 +345,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         VM_JMP(0x03);
                     case u6a_vf_e:
                         // Every program should terminate with explicit `e` function
-                        return U6A_VM_VAR_FN(arg);
+                        return arg;
                     default:
                         CHECK_FORCE(u6a_err_invalid_vm_func, func.token.fn);
                 }
@@ -365,6 +365,9 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                     ACC_FN_REF(u6a_vf_d1_s, u6a_vm_pool_alloc2(func, arg));
                 } else {
                     acc = u6a_vm_stack_xch(acc);
+                    if (UNLIKELY(U6A_VM_VAR_FN_IS_EMPTY(acc))) {
+                        goto runtime_error;
+                    }
                 }
                 break;
             case u6a_vo_del:
@@ -387,7 +390,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
     }
 
     runtime_error:
-    return U6A_VM_VAR_PTR(NULL);
+    return U6A_VM_VAR_FN_EMPTY;
 }
 
 void

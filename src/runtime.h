@@ -40,7 +40,7 @@ u6a_runtime_info(FILE* restrict istream, const char* file_name);
 bool
 u6a_runtime_init(struct u6a_runtime_options* options);
 
-union u6a_vm_var
+struct u6a_vm_var_fn
 u6a_runtime_execute(FILE* restrict istream, FILE* restrict output_stream);
 
 void

@@ -26,7 +26,7 @@ case "${host_os}" in
 esac
 
 dnl Checks for programs.
-AC_PROG_CC_C99
+AC_PROG_CC_STDC
 
 dnl Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h inttypes.h stddef.h stdint.h stdlib.h string.h unistd.h],

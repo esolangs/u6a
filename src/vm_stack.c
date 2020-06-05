@@ -108,7 +108,7 @@ u6a_vm_stack_top() {
     if (UNLIKELY(vs->top == UINT32_MAX)) {
         vs = vs->prev;
         if (UNLIKELY(vs == NULL)) {
-            return (struct u6a_vm_var_fn) { 0 };
+            return U6A_VM_VAR_FN_EMPTY;
         }
         active_stack = vs;
     }
@@ -232,12 +232,13 @@ u6a_vm_stack_xch(struct u6a_vm_var_fn v0) {
     } else {
         struct vm_stack* prev = vs->prev;
         if (UNLIKELY(prev == NULL)) {
-            return (struct u6a_vm_var_fn) { 0 };
+            u6a_err_stack_underflow(err_stage);
+            return U6A_VM_VAR_FN_EMPTY;
         }
         if (--prev->refcnt > 0) {
             prev = vm_stack_dup(prev);
             if (UNLIKELY(prev == NULL)) {
-                return (struct u6a_vm_var_fn) { 0 };
+                return U6A_VM_VAR_FN_EMPTY;
             }
         }
         if (vs->top == 0) {

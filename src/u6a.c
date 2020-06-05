@@ -153,8 +153,8 @@ int main(int argc, char** argv) {
         exit_code = EC_ERR_INIT;
         goto terminate;
     }
-    union u6a_vm_var exec_result = u6a_runtime_execute(stdin, stdout);
-    if (UNLIKELY(exec_result.ptr == NULL)) {
+    struct u6a_vm_var_fn exec_result = u6a_runtime_execute(stdin, stdout);
+    if (UNLIKELY(U6A_VM_VAR_FN_IS_EMPTY(exec_result))) {
         exit_code = EC_ERR_RUNTIME;
         goto terminate;
     }
