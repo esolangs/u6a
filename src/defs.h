@@ -49,8 +49,8 @@ struct u6a_token {
 
 struct u6a_ast_node {
     struct u6a_token value;
-    uint16_t reserved_;
-    uint32_t sibling;        /* index of sibling when this is left child, otherwise 0 */
+    uint16_t         reserved_;
+    uint32_t         sibling;        /* index of sibling when this is left child, otherwise 0 */
 };
 
 #define U6A_AN_FN(node)             (node)->value.fn

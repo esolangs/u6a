@@ -97,9 +97,6 @@ union u6a_vm_var {
     void*                ptr;
 };
 
-#define U6A_VM_VAR_FN(fn_)    (union u6a_vm_var) { .fn = fn_ }
-#define U6A_VM_VAR_PTR(ptr_)  (union u6a_vm_var) { .ptr = ptr_ }
-
 struct u6a_vm_var_tuple {
     union u6a_vm_var v1;
     union u6a_vm_var v2;

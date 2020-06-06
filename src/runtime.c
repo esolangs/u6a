@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 #include <arpa/inet.h>
 
 static struct u6a_vm_ins* text;
@@ -140,11 +141,11 @@ u6a_runtime_info(FILE* restrict input_stream, const char* file_name) {
         u6a_err_invalid_bc_file(err_runtime, file_name);
         return false;
     }
-    printf("Version: %d.%d.X\n", header.file.ver_major, header.file.ver_minor);
+    printf("Version: %d.%d.*\n", header.file.ver_major, header.file.ver_minor);
     if (LIKELY(CHECK_BC_HEADER_VER(header.file))) {
         if (LIKELY(header.file.prog_header_size == U6A_BC_PROG_HEADER_SIZE)) {
-            printf("Size of section .text   (bytes): 0x%08X\n", ntohl(header.prog.text_size));
-            printf("Size of section .rodata (bytes): 0x%08X\n", ntohl(header.prog.rodata_size));
+            printf("Size of section .text   (bytes): %" PRIu32 "\n", ntohl(header.prog.text_size));
+            printf("Size of section .rodata (bytes): %" PRIu32 "\n", ntohl(header.prog.rodata_size));
         } else {
             printf("Program header unrecognizable (%d bytes)\n", header.file.prog_header_size);
         }
@@ -208,12 +209,11 @@ u6a_runtime_init(struct u6a_runtime_options* options) {
 
 U6A_HOT struct u6a_vm_var_fn
 u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
-    struct u6a_vm_var_fn acc = { 0 }, top = { 0 };
+    struct u6a_vm_var_fn acc = { 0 }, top = { 0 }, func = { 0 }, arg = { 0 };
     struct u6a_vm_ins* ins = text + text_subst_len;
     int current_char = EOF;
-    struct u6a_vm_var_fn func = { 0 }, arg = { 0 };
     struct u6a_vm_var_tuple tuple;
-    void* ptr;
+    void* cont;
     while (true) {
         switch (ins->opcode) {
             case u6a_vo_app:
@@ -282,12 +282,12 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         ACC_FN(top);
                         VM_JMP(0x03);
                     case u6a_vf_c:
-                        ptr = u6a_vm_stack_save();
-                        if (UNLIKELY(ptr == NULL)) {
+                        cont = u6a_vm_stack_save();
+                        if (UNLIKELY(cont == NULL)) {
                             goto runtime_error;
                         }
                         STACK_PUSH2(VM_VAR_JMP, vm_var_fn_addref(arg));
-                        ACC_FN_REF(u6a_vf_c1, u6a_vm_pool_alloc2_ptr(ptr, ins));
+                        ACC_FN_REF(u6a_vf_c1, u6a_vm_pool_alloc2_ptr(cont, ins));
                         VM_JMP(0x03);
                     case u6a_vf_d:
                         vm_var_fn_addref(arg);
