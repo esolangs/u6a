@@ -33,13 +33,10 @@
 #define EC_ERR_CODEGEN  4
 
 struct arg_options {
+    struct u6a_codegen_options codegen;
     FILE* input_file;
     char* input_file_name;
-    FILE* output_file;
     char* output_file_prefix;
-    char* output_file_name;
-    bool  optimize_const;
-    bool  dump_mnemonics;
     bool  print_only;
 };
 
@@ -51,12 +48,12 @@ arg_options_destroy(struct arg_options* options, bool delete_output_file) {
     if (options->input_file && options->input_file != stdin) {
         fclose(options->input_file);
     }
-    const bool not_using_stdout = options->output_file != stdout;
-    if (options->output_file && not_using_stdout) {
-        fclose(options->output_file);
+    const bool not_using_stdout = options->codegen.output_stream != stdout;
+    if (options->codegen.output_stream && not_using_stdout) {
+        fclose(options->codegen.output_stream);
     }
-    if (delete_output_file && not_using_stdout && options->output_file_name) {
-        remove(options->output_file_name);
+    if (delete_output_file && not_using_stdout && options->codegen.file_name) {
+        remove(options->codegen.file_name);
     }
 }
 
@@ -71,7 +68,7 @@ process_options(struct arg_options* options, int argc, char** argv) {
         { "version",     no_argument,       NULL, 'V' },
         { 0, 0, 0, 0 }
     };
-    options->optimize_const = false;
+    options->codegen.optimize_const = false;
     bool syntax_only = false;
     bool verbose = false;
     char optimize_level = '1';
@@ -82,10 +79,10 @@ process_options(struct arg_options* options, int argc, char** argv) {
         }
         switch (result) {
             case 'o':
-                if (UNLIKELY(options->output_file_name)) {
+                if (UNLIKELY(options->codegen.file_name)) {
                     break;
                 }
-                options->output_file_name = optarg;
+                options->codegen.file_name = optarg;
                 break;
             case 'O':
                 optimize_level = optarg ? optarg[0] : '1';
@@ -96,7 +93,7 @@ process_options(struct arg_options* options, int argc, char** argv) {
                 options->output_file_prefix = optarg ? optarg : "#!/usr/bin/env u6a\n";
                 break;
             case 'S':
-                options->dump_mnemonics = true;
+                options->codegen.dump_mnemonics = true;
                 break;
             case 'v':
                 verbose = true;
@@ -145,11 +142,11 @@ process_options(struct arg_options* options, int argc, char** argv) {
     }
     // Output file
     if (syntax_only) {
-        if (UNLIKELY(options->output_file_name)) {
-            options->output_file_name = NULL;
+        if (UNLIKELY(options->codegen.file_name)) {
+            options->codegen.file_name = NULL;
         }
     } else {
-        if (options->output_file_name == NULL) {
+        if (options->codegen.file_name == NULL) {
             if (options->input_file == stdin) {
                 goto write_to_stdout;
             } else {
@@ -157,29 +154,30 @@ process_options(struct arg_options* options, int argc, char** argv) {
                     u6a_err_path_too_long(err_toplevel, PATH_MAX - 1, file_name_size + 8);
                     return false;
                 }
-                options->output_file_name = malloc((file_name_size + 9) * sizeof(char));
-                strcpy(options->output_file_name, options->input_file_name);
-                strcpy(options->output_file_name + file_name_size, options->dump_mnemonics ? ".bc.dump\0" : ".bc\0");
+                options->codegen.file_name = malloc((file_name_size + 9) * sizeof(char));
+                strcpy(options->codegen.file_name, options->input_file_name);
+                strcpy(options->codegen.file_name + file_name_size,
+                    options->codegen.dump_mnemonics ? ".bc.dump\0" : ".bc\0");
             }
-        } else if (strlen(options->output_file_name) == 1 && options->output_file_name[0] == '-') {
+        } else if (strlen(options->codegen.file_name) == 1 && options->codegen.file_name[0] == '-') {
             write_to_stdout:
             if (verbose) {
                 u6a_err_custom(err_toplevel, "cannot write to STDOUT on verbose mode");
                 return false;
             }
-            options->output_file = stdout;
-            options->output_file_name = "STDOUT";
+            options->codegen.output_stream = stdout;
+            options->codegen.file_name = "STDOUT";
         }
-        if (options->output_file == NULL) {
-            options->output_file = fopen(options->output_file_name, "w");
-            if (options->output_file == NULL) {
-                u6a_err_cannot_open_file(err_toplevel, options->output_file_name);
+        if (options->codegen.output_stream == NULL) {
+            options->codegen.output_stream = fopen(options->codegen.file_name, "w");
+            if (options->codegen.output_stream == NULL) {
+                u6a_err_cannot_open_file(err_toplevel, options->codegen.file_name);
                 return false;
             }
         }
     }
     if (optimize_level > '0') {
-        options->optimize_const = true;
+        options->codegen.optimize_const = true;
     }
     u6a_logging_verbose(verbose);
     return true;
@@ -209,16 +207,15 @@ main(int argc, char** argv) {
         exit_code = EC_ERR_PARSE;
         goto terminate;
     }
-    if (UNLIKELY(options.output_file == NULL)) {
+    if (UNLIKELY(options.codegen.output_stream == NULL)) {
         goto terminate;
     }
-    u6a_codegen_init(options.output_file, options.output_file_name, options.optimize_const, options.dump_mnemonics);
-    u6a_info_verbose(info_toplevel, "writing to %s", options.output_file_name);
-    if (UNLIKELY(!u6a_write_prefix(options.output_file_prefix))) {
+    u6a_info_verbose(info_toplevel, "writing to %s", options.codegen.file_name);
+    if (UNLIKELY(!u6a_write_prefix(&options.codegen, options.output_file_prefix))) {
         exit_code = EC_ERR_CODEGEN;
         goto terminate;
     }
-    if (UNLIKELY(!u6a_codegen(ast_arr, token_len + 2))) {
+    if (UNLIKELY(!u6a_codegen(&options.codegen, ast_arr, token_len + 2))) {
         exit_code = EC_ERR_CODEGEN;
         goto terminate;
     }

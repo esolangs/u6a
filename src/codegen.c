@@ -35,11 +35,6 @@
         goto codegen_failed;                                         \
     }
 
-static FILE*       output_stream;
-static const char* file_name;
-static bool        optimize_const;
-static bool        dump_mnemonics;
-
 static const char* err_codegen = "codegen error";
 static const char* info_codegen = "codegen";
 
@@ -66,32 +61,24 @@ write_bc_header(FILE* restrict output_stream, uint32_t text_len, uint32_t rodata
 }
 
 bool
-u6a_write_prefix(const char* prefix_string) {
-    if (dump_mnemonics) {
+u6a_write_prefix(const struct u6a_codegen_options* options, const char* prefix_string) {
+    if (options->dump_mnemonics) {
         return true;
     }
     if (prefix_string == NULL) {
         return true;
     }
     uint32_t write_length = strlen(prefix_string);
-    if (UNLIKELY(write_length != fwrite(prefix_string, sizeof(char), write_length, output_stream))) {
-        u6a_err_write_failed(err_codegen, write_length, file_name);
+    if (UNLIKELY(write_length != fwrite(prefix_string, sizeof(char), write_length, options->output_stream))) {
+        u6a_err_write_failed(err_codegen, write_length, options->file_name);
         return false;
     }
     u6a_info_verbose(info_codegen, "prefix string written, %" PRIu32 " chars total", write_length);
     return true;
 }
 
-void
-u6a_codegen_init(FILE* output_stream_, const char* file_name_, bool optimize_const_, bool dump_mnemonics_) {
-    output_stream = output_stream_;
-    file_name = file_name_;
-    optimize_const = optimize_const_;
-    dump_mnemonics = dump_mnemonics_;
-}
-
 bool
-u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len) {
+u6a_codegen(const struct u6a_codegen_options* options, struct u6a_ast_node* ast_arr, uint32_t ast_len) {
     void* bc_buffer = calloc(ast_len, sizeof(struct u6a_vm_ins) + sizeof(char));
     if (UNLIKELY(bc_buffer == NULL)) {
         u6a_err_bad_alloc(err_codegen, ast_len * (sizeof(struct u6a_vm_ins) + sizeof(char)));
@@ -139,7 +126,7 @@ u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len) {
                     };
                 }
             } else {
-                if (optimize_const && U6A_AN_FN(lchild) == u6a_tf_out) {
+                if (options->optimize_const && U6A_AN_FN(lchild) == u6a_tf_out) {
                     uint32_t old_rodata_len = rodata_len;
                     uint32_t old_stack_top = stack_top;
                     rodata_buffer[rodata_len++] = U6A_AN_CH(lchild);
@@ -201,20 +188,20 @@ u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len) {
         }
     }
     uint32_t write_len = 0;
-    if (UNLIKELY(dump_mnemonics)) {
-        if (UNLIKELY(!u6a_dump_mnemonics(output_stream, text_buffer, text_len))) {
+    if (UNLIKELY(options->dump_mnemonics)) {
+        if (UNLIKELY(!u6a_dump_mnemonics(options->output_stream, text_buffer, text_len))) {
             goto codegen_failed;
         }
-        if (UNLIKELY(!u6a_dump_data(output_stream, rodata_buffer, rodata_len))) {
+        if (UNLIKELY(!u6a_dump_data(options->output_stream, rodata_buffer, rodata_len))) {
             goto codegen_failed;
         }
     } else {
-        if (UNLIKELY(!write_bc_header(output_stream, text_len, rodata_len))) {
+        if (UNLIKELY(!write_bc_header(options->output_stream, text_len, rodata_len))) {
             write_len = sizeof(struct u6a_bc_header);
             goto codegen_failed;
         }
-        WRITE_SECION(text_buffer, sizeof(struct u6a_vm_ins), text_len, output_stream);
-        WRITE_SECION(rodata_buffer, sizeof(char), rodata_len, output_stream);
+        WRITE_SECION(text_buffer, sizeof(struct u6a_vm_ins), text_len, options->output_stream);
+        WRITE_SECION(rodata_buffer, sizeof(char), rodata_len, options->output_stream);
     }
     free(bc_buffer);
     free(stack);
@@ -222,7 +209,7 @@ u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len) {
     return true;
 
     codegen_failed:
-    u6a_err_write_failed(err_codegen, write_len, file_name);
+    u6a_err_write_failed(err_codegen, write_len, options->file_name);
     free(bc_buffer);
     free(stack);
     return false;

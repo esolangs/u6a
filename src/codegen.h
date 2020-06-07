@@ -26,13 +26,17 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void
-u6a_codegen_init(FILE* output_stream, const char* file_name, bool optimize_const, bool dump_mnemonics);
+struct u6a_codegen_options {
+    FILE* output_stream;
+    char* file_name;
+    bool  optimize_const;
+    bool  dump_mnemonics;
+};
 
 bool
-u6a_write_prefix(const char* prefix_string);
+u6a_write_prefix(const struct u6a_codegen_options* options, const char* prefix_string);
 
 bool
-u6a_codegen(struct u6a_ast_node* ast_arr, uint32_t ast_len);
+u6a_codegen(const struct u6a_codegen_options* options, struct u6a_ast_node* ast_arr, uint32_t ast_len);
 
 #endif
