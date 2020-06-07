@@ -1,0 +1,52 @@
+##
+## dump.exp - Test whether mnemonic dumping works on this u6a build
+## 
+## Copyright (C) 2020  CismonX <admin@cismon.net>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
+##
+
+set tool "default"
+set timeout 1
+
+set mnemonics ".text
+00000000:  APP        s,     i
+00000001:  APP        acc,   i
+00000002:  SA         0x0000000e
+00000003:  APP        s,     i
+00000004:  SA         0x0000000d
+00000005:  DEL        0x00000009
+00000006:  LC<print>  0x00000000
+00000007:  APP        acc,   .U   
+00000008:  LA         
+00000009:  APP        k,     acc
+0000000a:  APP        s,     acc
+0000000b:  APP        acc,   i
+0000000c:  LA         
+0000000d:  LA         
+0000000e:  APP        e,     acc
+
+.rodata
+00000000:  6e6c 616d 6264 612c 2063 2765 7374 2074  nlambda, c'est t
+00000010:  7269 7669 616c 210a 00                   rivial!.."
+
+# Code taken from ftp://ftp.madore.org/pub/madore/unlambda/CUAN/trivial.unl
+# Written by David Madore <david.madore@ens.fr>
+set src_code "```sii``si``s`k`d`r`.!`.l`.a`.i`.v`.i`.r`.t`. `.t`.s`.e`.'`.c`. `.,`.a`.d`.b`.m`.a`.l`.n.Ui"
+
+if { [ u6a_dump_mnemonics $src_code ] eq $mnemonics } {
+    pass "ok!"
+} else {
+    fail "fail!"
+}

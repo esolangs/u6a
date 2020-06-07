@@ -17,6 +17,15 @@
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ##
 
+proc u6a_dump_mnemonics { src_code } {
+    global U6AC_BIN
+    if { [ catch { exec $U6AC_BIN -S - << $src_code } result ] == 0 } {
+        return $result
+    } else {
+        fail "failed to dump mnemonics of program"
+    }
+}
+
 proc u6a_run { src_code u6ac_opts u6a_opts has_input } {
     global U6A_BIN U6AC_BIN U6A_RUN B64_ENCODE B64_DECODE
     set u6ac "$U6AC_BIN $u6ac_opts"
