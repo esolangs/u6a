@@ -88,7 +88,7 @@ u6a_hexdump(FILE* restrict output_stream, const char* data, const char* formatte
                 fprintf_check(output_stream, "%02x   ", data[idx]);
             }
             int blanks = (U6A_HEXDUMP_BYTES_PER_LINE - remaining) / 2 * 5;
-            fprintf_check(output_stream, " %*s%s\n", blanks, "", formatted + length - remaining);
+            fprintf_check(output_stream, " %*s%.*s\n", blanks, "", remaining, formatted + length - remaining);
         } else {
             fprintf_check(output_stream, format, idx, D_INC_DUP_16, formatted + idx);
         }
