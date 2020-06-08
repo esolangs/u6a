@@ -34,10 +34,10 @@
 
 struct arg_options {
     struct u6a_codegen_options codegen;
-    FILE* input_file;
-    char* input_file_name;
-    char* output_file_prefix;
-    bool  print_only;
+    FILE*                      input_file;
+    char*                      input_file_name;
+    char*                      output_file_prefix;
+    bool                       print_only;
 };
 
 static const char* err_toplevel = "error";
