@@ -20,7 +20,7 @@
 set tool "default"
 set timeout 1
 
-set mnemonics ".text
+set expected ".text
 00000000:  APP        s,     i
 00000001:  APP        acc,   i
 00000002:  SA         0x0000000e
@@ -45,8 +45,9 @@ set mnemonics ".text
 # Written by David Madore <david.madore@ens.fr>
 set src_code "```sii``si``s`k`d`r`.!`.l`.a`.i`.v`.i`.r`.t`. `.t`.s`.e`.'`.c`. `.,`.a`.d`.b`.m`.a`.l`.n.Ui"
 
-if { [ u6a_dump_mnemonics $src_code ] eq $mnemonics } {
+set result [ u6a_dump_mnemonics $src_code ]
+if { $result eq $expected } {
     pass "ok!"
 } else {
-    fail "fail!"
+    fail "fail! got: $result"
 }
