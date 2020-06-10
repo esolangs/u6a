@@ -52,7 +52,7 @@ u6a_err_unexpected_eof(const char* stage, int after) {
 
 U6A_COLD void
 u6a_err_unprintable_ch(const char* stage, int got) {
-    fprintf(stderr, "%s[%s]: printable character or '\\n' expected, 0x%02x given.\n", prog_name, stage, got);
+    fprintf(stderr, "%s: [%s] printable character or '\\n' expected, 0x%02x given.\n", prog_name, stage, got);
 }
 
 U6A_COLD void
