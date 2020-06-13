@@ -46,56 +46,58 @@ static const uint32_t text_subst_len = sizeof(text_subst) / sizeof(struct u6a_vm
 static const char* err_runtime = "runtime error";
 static const char* info_runtime = "runtime";
 
-#define CHECK_BC_HEADER_VER(file_header)                     \
+#define CHECK_BC_HEADER_VER(file_header)                          \
     ( (file_header).ver_major == U6A_VER_MAJOR && (file_header).ver_minor == U6A_VER_MINOR )
 
 // Addref before free, for acc may equal to fn
-#define ACC_FN(fn_)                                          \
-    vm_var_fn_addref(fn_);                                   \
-    vm_var_fn_free(acc);                                     \
+#define ACC_FN(fn_)                                               \
+    vm_var_fn_addref(fn_);                                        \
+    vm_var_fn_free(acc);                                          \
     acc = fn_
-#define ACC_FN_INIT(fn_)                                     \
-    vm_var_fn_free(acc);                                     \
+#define ACC_FN_INIT(fn_)                                          \
+    vm_var_fn_free(acc);                                          \
     acc = fn_
-#define ACC_FN_REF(fn_, ref_)                                \
-    vm_var_fn_free(acc);                                     \
-    acc = U6A_VM_VAR_FN_REF(fn_, ref_);                      \
-    if (UNLIKELY(acc.ref == UINT32_MAX)) {                   \
-        goto runtime_error;                                  \
+#define ACC_FN_REF(fn_, ref_)                                     \
+    vm_var_fn_free(acc);                                          \
+    acc = U6A_VM_VAR_FN_REF(fn_, ref_);                           \
+    if (UNLIKELY(acc.ref == UINT32_MAX)) {                        \
+        goto runtime_error;                                       \
     }
-#define VM_JMP(dest)                                         \
-    ins = text + (dest);                                     \
+#define VM_JMP(dest)                                              \
+    ins = text + (dest);                                          \
     continue
-#define VM_VAR_JMP                                           \
+#define VM_VAR_JMP                                                \
     U6A_VM_VAR_FN_REF(u6a_vf_j, ins - text)
-#define CHECK_FORCE(log_func, err_val)                       \
-    if (!force_exec) {                                       \
-        log_func(err_runtime, err_val);                      \
-        goto runtime_error;                                  \
+#define VM_VAR_FINALIZE                                           \
+    U6A_VM_VAR_FN_REF(u6a_vf_f, ins - text)
+#define CHECK_FORCE(log_func, err_val)                            \
+    if (!force_exec) {                                            \
+        log_func(err_runtime, err_val);                           \
+        goto runtime_error;                                       \
     }
 
-#define STACK_PUSH1(fn_0)                                    \
-    vm_var_fn_addref(fn_0);                                  \
-    if (UNLIKELY(!u6a_vm_stack_push1(fn_0))) {               \
-        goto runtime_error;                                  \
+#define STACK_PUSH1(fn_0)                                         \
+    vm_var_fn_addref(fn_0);                                       \
+    if (UNLIKELY(!u6a_vm_stack_push1(fn_0))) {                    \
+        goto runtime_error;                                       \
     }
-#define STACK_PUSH2(fn_0, fn_1)                              \
-    if (UNLIKELY(!u6a_vm_stack_push2(fn_0, fn_1))) {         \
-        goto runtime_error;                                  \
+#define STACK_PUSH2(fn_0, fn_1)                                   \
+    if (UNLIKELY(!u6a_vm_stack_push2(fn_0, fn_1))) {              \
+        goto runtime_error;                                       \
     }
-#define STACK_PUSH3(fn_0, fn_12)                             \
-    if (UNLIKELY(!u6a_vm_stack_push3(fn_0, fn_12))) {        \
-        goto runtime_error;                                  \
+#define STACK_PUSH3(fn_0, fn_1, fn_2)                             \
+    if (UNLIKELY(!u6a_vm_stack_push3(fn_0, fn_1, fn_2))) {        \
+        goto runtime_error;                                       \
     }
-#define STACK_PUSH4(fn_0, fn_1, fn_23)                       \
-    if (UNLIKELY(!u6a_vm_stack_push4(fn_0, fn_1, fn_23))) {  \
-        goto runtime_error;                                  \
+#define STACK_PUSH4(fn_0, fn_1, fn_2, fn_3)                       \
+    if (UNLIKELY(!u6a_vm_stack_push4(fn_0, fn_1, fn_2, fn_3))) {  \
+        goto runtime_error;                                       \
     }
-#define STACK_POP()                                          \
-    vm_var_fn_free(top);                                     \
-    top = u6a_vm_stack_top();                                \
-    if (UNLIKELY(!u6a_vm_stack_pop())) {                     \
-        goto runtime_error;                                  \
+#define STACK_POP()                                               \
+    vm_var_fn_free(top);                                          \
+    top = u6a_vm_stack_top();                                     \
+    if (UNLIKELY(!u6a_vm_stack_pop())) {                          \
+        goto runtime_error;                                       \
     }
 
 static inline bool
@@ -251,9 +253,9 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         vm_var_fn_addref(tuple.v2.fn);
                         vm_var_fn_addref(arg);
                         if (ins - text == 0x03) {
-                            STACK_PUSH3(arg, tuple);
+                            STACK_PUSH3(arg, tuple.v2.fn, tuple.v1.fn);
                         } else {
-                            STACK_PUSH4(VM_VAR_JMP, arg, tuple);
+                            STACK_PUSH4(VM_VAR_JMP, arg, tuple.v2.fn, tuple.v1.fn);
                         }
                         ACC_FN(arg);
                         VM_JMP(0x00);
@@ -305,11 +307,11 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         VM_JMP(0x03);
                     case u6a_vf_d1_s:
                         tuple = u6a_vm_pool_get2(func.ref);
-                        STACK_PUSH1(tuple.v1.fn);
+                        STACK_PUSH3(vm_var_fn_addref(arg), VM_VAR_FINALIZE, tuple.v1.fn);
                         ACC_FN(tuple.v2.fn);
                         VM_JMP(0x03);
                     case u6a_vf_d1_d:
-                        STACK_PUSH2(vm_var_fn_addref(arg), U6A_VM_VAR_FN_REF(u6a_vf_f, ins - text));
+                        STACK_PUSH2(vm_var_fn_addref(arg), VM_VAR_FINALIZE);
                         VM_JMP(func.ref);
                     case u6a_vf_v:
                         vm_var_fn_free(acc);

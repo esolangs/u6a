@@ -154,12 +154,12 @@ u6a_vm_stack_push2(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1) {
 }
 
 U6A_HOT bool
-u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_tuple v12) {
+u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2) {
     struct vm_stack* vs = active_stack;
     if (LIKELY(vs->top + 3 < stack_seg_len)) {
         vs->elems[++vs->top] = v0;
-        vs->elems[++vs->top] = v12.v2.fn;
-        vs->elems[++vs->top] = v12.v1.fn;
+        vs->elems[++vs->top] = v1;
+        vs->elems[++vs->top] = v2;
         return true;
     }
     active_stack = vm_stack_create(vs, 2);
@@ -169,19 +169,20 @@ u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_tuple v12) {
     }
     ++vs->refcnt;
     active_stack->elems[0] = v0;
-    active_stack->elems[1] = v12.v2.fn;
-    active_stack->elems[2] = v12.v1.fn;
+    active_stack->elems[1] = v1;
+    active_stack->elems[2] = v2;
     return true;
 }
 
 U6A_HOT bool
-u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_vm_var_tuple v23) {
+u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                   struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3) {
     struct vm_stack* vs = active_stack;
     if (LIKELY(vs->top + 4 < stack_seg_len)) {
         vs->elems[++vs->top] = v0;
         vs->elems[++vs->top] = v1;
-        vs->elems[++vs->top] = v23.v2.fn;
-        vs->elems[++vs->top] = v23.v1.fn;
+        vs->elems[++vs->top] = v2;
+        vs->elems[++vs->top] = v3;
         return true;
     }
     active_stack = vm_stack_create(vs, 3);
@@ -192,8 +193,8 @@ u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_
     ++vs->refcnt;
     active_stack->elems[0] = v0;
     active_stack->elems[1] = v1;
-    active_stack->elems[2] = v23.v2.fn;
-    active_stack->elems[3] = v23.v1.fn;
+    active_stack->elems[2] = v2;
+    active_stack->elems[3] = v3;
     return true;
 }
 

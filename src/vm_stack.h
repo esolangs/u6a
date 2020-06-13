@@ -41,10 +41,11 @@ u6a_vm_stack_push2(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1);
 // Functions push3 and push4 are made for the s2 function to alleviate overhead caused by hot split
 
 bool
-u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_tuple v12);
+u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2);
 
 bool
-u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_vm_var_tuple v23);
+u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                   struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3);
 
 bool
 u6a_vm_stack_pop();
