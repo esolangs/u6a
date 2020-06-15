@@ -26,46 +26,147 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+struct u6a_vm_stack {
+    struct u6a_vm_stack* prev;
+    uint32_t             top;
+    uint32_t             refcnt;
+    struct u6a_vm_var_fn elems[];
+};
+
+struct u6a_vm_stack_ctx {
+    struct u6a_vm_stack* active_stack;
+    uint32_t             stack_seg_len;
+    struct u6a_vm_pool_ctx*  pool_ctx;
+    const char*          err_stage;
+};
+
 bool
-u6a_vm_stack_init(uint32_t stack_seg_len, const char* err_stage);
+u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, const char* err_stage);
+
+static inline struct u6a_vm_var_fn
+u6a_vm_stack_top(struct u6a_vm_stack_ctx* ctx) {
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (UNLIKELY(vs->top == UINT32_MAX)) {
+        vs = vs->prev;
+        if (UNLIKELY(vs == NULL)) {
+            return U6A_VM_VAR_FN_EMPTY;
+        }
+        ctx->active_stack = vs;
+    }
+    return vs->elems[vs->top];
+}
+
+bool
+u6a_vm_stack_push1_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0);
+
+static inline bool
+u6a_vm_stack_push1(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0) {
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (LIKELY(vs->top + 1 < ctx->stack_seg_len)) {
+        vs->elems[++vs->top] = v0;
+        return true;
+    }
+    return u6a_vm_stack_push1_split_(ctx, v0);
+}
+
+bool
+u6a_vm_stack_push2_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1);
+
+static inline bool
+u6a_vm_stack_push2(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1) {
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (LIKELY(vs->top + 2 < ctx->stack_seg_len)) {
+        vs->elems[++vs->top] = v0;
+        vs->elems[++vs->top] = v1;
+        return true;
+    }
+    return u6a_vm_stack_push2_split_(ctx, v0, v1);
+}
+
+bool
+u6a_vm_stack_push3_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                          struct u6a_vm_var_fn v2);
+
+static inline bool
+u6a_vm_stack_push3(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                   struct u6a_vm_var_fn v2)
+{
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (LIKELY(vs->top + 3 < ctx->stack_seg_len)) {
+        vs->elems[++vs->top] = v0;
+        vs->elems[++vs->top] = v1;
+        vs->elems[++vs->top] = v2;
+        return true;
+    }
+    return u6a_vm_stack_push3_split_(ctx, v0, v1, v2);
+}
+
+bool
+u6a_vm_stack_push4_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                          struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3);
+
+static inline bool
+u6a_vm_stack_push4(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
+                   struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3)
+{
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (LIKELY(vs->top + 4 < ctx->stack_seg_len)) {
+        vs->elems[++vs->top] = v0;
+        vs->elems[++vs->top] = v1;
+        vs->elems[++vs->top] = v2;
+        vs->elems[++vs->top] = v3;
+        return true;
+    }
+    return u6a_vm_stack_push4_split_(ctx, v0, v1, v2, v3);
+}
+
+bool
+u6a_vm_stack_pop_split_(struct u6a_vm_stack_ctx* ctx);
+
+static inline bool
+u6a_vm_stack_pop(struct u6a_vm_stack_ctx* ctx) {
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    if (LIKELY(vs->top-- != UINT32_MAX)) {
+        return true;
+    }
+    return u6a_vm_stack_pop_split_(ctx);
+}
 
 struct u6a_vm_var_fn
-u6a_vm_stack_top();
+u6a_vm_stack_xch_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0);
 
-bool
-u6a_vm_stack_push1(struct u6a_vm_var_fn v0);
+static inline struct u6a_vm_var_fn
+u6a_vm_stack_xch(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0) {
+    struct u6a_vm_stack* vs = ctx->active_stack;
+    struct u6a_vm_var_fn elem;
+    // XCH on segmented stacks is inefficient, perhaps there's a better solution?
+    if (LIKELY(vs->top != 0 && vs->top != UINT32_MAX)) {
+        elem = vs->elems[vs->top - 1];
+        vs->elems[vs->top - 1] = v0;
+    } else {
+        elem = u6a_vm_stack_xch_split_(ctx, v0);
+    }
+    return elem;
+}
 
-bool
-u6a_vm_stack_push2(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1);
+struct u6a_vm_stack*
+u6a_vm_stack_dup(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs);
 
-// Functions push3 and push4 are made for the s2 function to alleviate overhead caused by hot split
-
-bool
-u6a_vm_stack_push3(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2);
-
-bool
-u6a_vm_stack_push4(struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
-                   struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3);
-
-bool
-u6a_vm_stack_pop();
-
-struct u6a_vm_var_fn
-u6a_vm_stack_xch(struct u6a_vm_var_fn v1);
-
-void*
-u6a_vm_stack_save();
-
-void*
-u6a_vm_stack_dup(void* ptr);
+static inline struct u6a_vm_stack*
+u6a_vm_stack_save(struct u6a_vm_stack_ctx* ctx) {
+    return u6a_vm_stack_dup(ctx, ctx->active_stack);
+}
 
 void
-u6a_vm_stack_resume(void* ptr);
+u6a_vm_stack_discard(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs);
 
 void
-u6a_vm_stack_discard(void* ptr);
+u6a_vm_stack_destroy(struct u6a_vm_stack_ctx* ctx);
 
-void
-u6a_vm_stack_destroy();
+static inline void
+u6a_vm_stack_resume(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs) {
+    u6a_vm_stack_destroy(ctx);
+    ctx->active_stack = vs;
+}
 
 #endif

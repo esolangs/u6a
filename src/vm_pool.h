@@ -22,38 +22,164 @@
 
 #include "common.h"
 #include "vm_defs.h"
+#include "logging.h"
 
 #include <stdint.h>
 #include <stdbool.h>
 
+struct u6a_vm_pool_elem {
+    struct u6a_vm_var_tuple values;
+    uint32_t                refcnt;
+    uint32_t                flags;
+};
+
+#define U6A_VM_POOL_ELEM_HOLDS_PTR ( 1 << 0 )
+
+struct u6a_vm_pool {
+    uint32_t pos;
+    struct u6a_vm_pool_elem elems[];
+};
+
+struct u6a_vm_pool_elem_ptrs {
+    uint32_t pos;
+    struct u6a_vm_pool_elem* elems[];
+};
+
+struct u6a_vm_pool_ctx {
+    struct u6a_vm_pool*           active_pool;
+    struct u6a_vm_pool_elem_ptrs* holes;
+    struct u6a_vm_pool_elem**     fstack;
+    struct u6a_vm_stack_ctx*      stack_ctx;
+    uint32_t                      pool_len;
+    uint32_t                      fstack_top;
+    const char*                   err_stage;
+};
+
+static inline void
+free_stack_push(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn fn) {
+    if (fn.token.fn & U6A_VM_FN_REF) {
+        ctx->fstack[++ctx->fstack_top] = ctx->active_pool->elems + fn.ref;
+    }
+}
+
+static inline struct u6a_vm_pool_elem*
+free_stack_pop(struct u6a_vm_pool_ctx* ctx) {
+    if (ctx->fstack_top == UINT32_MAX) {
+        return NULL;
+    }
+    return ctx->fstack[ctx->fstack_top--];
+}
+
+static inline struct u6a_vm_pool_elem*
+vm_pool_elem_alloc(struct u6a_vm_pool_ctx* ctx) {
+    struct u6a_vm_pool* pool = ctx->active_pool;
+    struct u6a_vm_pool_elem_ptrs* holes = ctx->holes;
+    struct u6a_vm_pool_elem* new_elem;
+    if (ctx->holes->pos == UINT32_MAX) {
+        if (UNLIKELY(++pool->pos == ctx->pool_len)) {
+            u6a_err_vm_pool_oom(ctx->err_stage);
+            return NULL;
+        }
+        new_elem = pool->elems + pool->pos;
+    } else {
+        new_elem = holes->elems[holes->pos--];
+    }
+    new_elem->refcnt = 1;
+    return new_elem;
+}
+
+static inline struct u6a_vm_pool_elem*
+vm_pool_elem_dup(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_pool_elem* elem) {
+    struct u6a_vm_pool_elem* new_elem = vm_pool_elem_alloc(ctx);
+    if (UNLIKELY(new_elem == NULL)) {
+        return NULL;
+    }
+    *new_elem = *elem;
+    return new_elem;
+}
+
 bool
-u6a_vm_pool_init(uint32_t pool_len, uint32_t ins_len, const char* err_stage);
+u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_len, const char* err_stage);
 
-uint32_t
-u6a_vm_pool_alloc1(struct u6a_vm_var_fn v1);
+static inline uint32_t
+u6a_vm_pool_alloc1(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1) {
+    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    if (UNLIKELY(elem == NULL)) {
+        return UINT32_MAX;
+    }
+    elem->values = (struct u6a_vm_var_tuple) { .v1.fn = v1, .v2.ptr = NULL };
+    elem->flags = 0;
+    return elem - ctx->active_pool->elems;
+}
 
-uint32_t
-u6a_vm_pool_alloc2(struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2);
+static inline uint32_t
+u6a_vm_pool_alloc2(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2) {
+    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    if (UNLIKELY(elem == NULL)) {
+        return UINT32_MAX;
+    }
+    elem->values = (struct u6a_vm_var_tuple) { .v1.fn = v1, .v2.fn = v2 };
+    elem->flags = 0;
+    return elem - ctx->active_pool->elems;
+}
 
-uint32_t
-u6a_vm_pool_alloc2_ptr(void* v1, void* v2);
+static inline uint32_t
+u6a_vm_pool_alloc2_ptr(struct u6a_vm_pool_ctx* ctx, void* v1, void* v2) {
+    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    if (UNLIKELY(elem == NULL)) {
+        return UINT32_MAX;
+    }
+    elem->values = (struct u6a_vm_var_tuple) { .v1.ptr = v1, .v2.ptr = v2 };
+    elem->flags = U6A_VM_POOL_ELEM_HOLDS_PTR;
+    return elem - ctx->active_pool->elems;
+}
 
-union u6a_vm_var
-u6a_vm_pool_get1(uint32_t offset);
+static inline union u6a_vm_var
+u6a_vm_pool_get1(struct u6a_vm_pool* pool, uint32_t offset) {
+    return pool->elems[offset].values.v1;
+}
 
-struct u6a_vm_var_tuple
-u6a_vm_pool_get2(uint32_t offset);
+static inline struct u6a_vm_var_tuple
+u6a_vm_pool_get2(struct u6a_vm_pool* pool, uint32_t offset) {
+    return pool->elems[offset].values;
+}
 
-struct u6a_vm_var_tuple
-u6a_vm_pool_get2_separate(uint32_t offset);
+static inline struct u6a_vm_var_tuple
+u6a_vm_pool_get2_separate(struct u6a_vm_pool_ctx* ctx, uint32_t offset) {
+    struct u6a_vm_pool_elem* elem = ctx->active_pool->elems + offset;
+    struct u6a_vm_var_tuple values = elem->values;
+    if (elem->refcnt > 1) {
+        // Continuation having more than 1 reference should be separated before reinstatement
+        values.v1.ptr = u6a_vm_stack_dup(ctx->stack_ctx, values.v1.ptr);
+    }
+    return values;
+}
+
+static inline void
+u6a_vm_pool_addref(struct u6a_vm_pool* pool, uint32_t offset) {
+    ++pool->elems[offset].refcnt;
+}
+
+static inline void
+u6a_vm_pool_free(struct u6a_vm_pool_ctx* ctx, uint32_t offset) {
+    struct u6a_vm_pool_elem* elem = ctx->active_pool->elems + offset;
+    struct u6a_vm_pool_elem_ptrs* holes = ctx->holes;
+    ctx->fstack_top = UINT32_MAX;
+    do {
+        if (--elem->refcnt == 0) {
+            holes->elems[++holes->pos] = elem;
+            if (elem->flags & U6A_VM_POOL_ELEM_HOLDS_PTR) {
+                // Continuation destroyed before used
+                u6a_vm_stack_discard(ctx->stack_ctx, elem->values.v1.ptr);
+            } else {
+                free_stack_push(ctx, elem->values.v2.fn);
+                free_stack_push(ctx, elem->values.v1.fn);
+            }
+        }
+    } while ((elem = free_stack_pop(ctx)));
+}
 
 void
-u6a_vm_pool_addref(uint32_t offset);
-
-void
-u6a_vm_pool_free(uint32_t offset);
-
-void
-u6a_vm_pool_destroy();
+u6a_vm_pool_destroy(struct u6a_vm_pool_ctx* ctx);
 
 #endif
