@@ -22,7 +22,6 @@
 
 #include "common.h"
 #include "vm_defs.h"
-#include "logging.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -55,15 +54,26 @@ struct u6a_vm_pool_ctx {
     const char*                   err_stage;
 };
 
+// Forward declarations
+
+struct u6a_vm_stack*
+u6a_vm_stack_dup(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs);
+
+void
+u6a_vm_stack_discard(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs);
+
+void
+u6a_err_vm_pool_oom(const char* stage);
+
 static inline void
-free_stack_push(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn fn) {
+u6a_free_stack_push_(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn fn) {
     if (fn.token.fn & U6A_VM_FN_REF) {
         ctx->fstack[++ctx->fstack_top] = ctx->active_pool->elems + fn.ref;
     }
 }
 
 static inline struct u6a_vm_pool_elem*
-free_stack_pop(struct u6a_vm_pool_ctx* ctx) {
+u6a_free_stack_pop_(struct u6a_vm_pool_ctx* ctx) {
     if (ctx->fstack_top == UINT32_MAX) {
         return NULL;
     }
@@ -71,7 +81,7 @@ free_stack_pop(struct u6a_vm_pool_ctx* ctx) {
 }
 
 static inline struct u6a_vm_pool_elem*
-vm_pool_elem_alloc(struct u6a_vm_pool_ctx* ctx) {
+u6a_vm_pool_elem_alloc_(struct u6a_vm_pool_ctx* ctx) {
     struct u6a_vm_pool* pool = ctx->active_pool;
     struct u6a_vm_pool_elem_ptrs* holes = ctx->holes;
     struct u6a_vm_pool_elem* new_elem;
@@ -89,8 +99,8 @@ vm_pool_elem_alloc(struct u6a_vm_pool_ctx* ctx) {
 }
 
 static inline struct u6a_vm_pool_elem*
-vm_pool_elem_dup(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_pool_elem* elem) {
-    struct u6a_vm_pool_elem* new_elem = vm_pool_elem_alloc(ctx);
+u6a_vm_pool_elem_dup_(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_pool_elem* elem) {
+    struct u6a_vm_pool_elem* new_elem = u6a_vm_pool_elem_alloc_(ctx);
     if (UNLIKELY(new_elem == NULL)) {
         return NULL;
     }
@@ -103,7 +113,7 @@ u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_le
 
 static inline uint32_t
 u6a_vm_pool_alloc1(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1) {
-    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
     if (UNLIKELY(elem == NULL)) {
         return UINT32_MAX;
     }
@@ -114,7 +124,7 @@ u6a_vm_pool_alloc1(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1) {
 
 static inline uint32_t
 u6a_vm_pool_alloc2(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2) {
-    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
     if (UNLIKELY(elem == NULL)) {
         return UINT32_MAX;
     }
@@ -125,7 +135,7 @@ u6a_vm_pool_alloc2(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1, struct 
 
 static inline uint32_t
 u6a_vm_pool_alloc2_ptr(struct u6a_vm_pool_ctx* ctx, void* v1, void* v2) {
-    struct u6a_vm_pool_elem* elem = vm_pool_elem_alloc(ctx);
+    struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
     if (UNLIKELY(elem == NULL)) {
         return UINT32_MAX;
     }
@@ -172,11 +182,11 @@ u6a_vm_pool_free(struct u6a_vm_pool_ctx* ctx, uint32_t offset) {
                 // Continuation destroyed before used
                 u6a_vm_stack_discard(ctx->stack_ctx, elem->values.v1.ptr);
             } else {
-                free_stack_push(ctx, elem->values.v2.fn);
-                free_stack_push(ctx, elem->values.v1.fn);
+                u6a_free_stack_push_(ctx, elem->values.v2.fn);
+                u6a_free_stack_push_(ctx, elem->values.v1.fn);
             }
         }
-    } while ((elem = free_stack_pop(ctx)));
+    } while ((elem = u6a_free_stack_pop_(ctx)));
 }
 
 void
