@@ -61,10 +61,7 @@ static const char* info_runtime = "runtime";
     acc = fn_
 #define ACC_FN_REF(fn_, ref_)                                     \
     vm_var_fn_free(acc);                                          \
-    acc = U6A_VM_VAR_FN_REF(fn_, ref_);                           \
-    if (UNLIKELY(acc.ref == UINT32_MAX)) {                        \
-        goto runtime_error;                                       \
-    }
+    acc = U6A_VM_VAR_FN_REF(fn_, ref_)
 #define VM_JMP(dest)                                              \
     ins = text + (dest);                                          \
     continue
@@ -77,34 +74,15 @@ static const char* info_runtime = "runtime";
 #define VM_VAR_JMP       U6A_VM_VAR_FN_REF(u6a_vf_j, ins - text)
 #define VM_VAR_FINALIZE  U6A_VM_VAR_FN_REF(u6a_vf_f, ins - text)
 
-#define STACK_PUSH1(fn_0)                                                     \
-    vm_var_fn_addref(fn_0);                                                   \
-    if (UNLIKELY(!u6a_vm_stack_push1(&stack_ctx, fn_0))) {                    \
-        goto runtime_error;                                                   \
-    }
-#define STACK_PUSH2(fn_0, fn_1)                                               \
-    if (UNLIKELY(!u6a_vm_stack_push2(&stack_ctx, fn_0, fn_1))) {              \
-        goto runtime_error;                                                   \
-    }
-#define STACK_PUSH3(fn_0, fn_1, fn_2)                                         \
-    if (UNLIKELY(!u6a_vm_stack_push3(&stack_ctx, fn_0, fn_1, fn_2))) {        \
-        goto runtime_error;                                                   \
-    }
-#define STACK_PUSH4(fn_0, fn_1, fn_2, fn_3)                                   \
-    if (UNLIKELY(!u6a_vm_stack_push4(&stack_ctx, fn_0, fn_1, fn_2, fn_3))) {  \
-        goto runtime_error;                                                   \
-    }
-#define STACK_POP()                                                           \
-    vm_var_fn_free(top);                                                      \
-    top = u6a_vm_stack_top(&stack_ctx);                                       \
-    if (UNLIKELY(!u6a_vm_stack_pop(&stack_ctx))) {                            \
-        goto runtime_error;                                                   \
-    }
-#define STACK_XCH(fn_0)                                                       \
-    fn_0 = u6a_vm_stack_xch(&stack_ctx, fn_0);                                \
-    if (UNLIKELY(U6A_VM_VAR_FN_IS_EMPTY(fn_0))) {                             \
-        goto runtime_error;                                                   \
-    }
+#define STACK_PUSH1(fn_0)                    u6a_vm_stack_push1(&stack_ctx, fn_0)
+#define STACK_PUSH2(fn_0, fn_1)              u6a_vm_stack_push2(&stack_ctx, fn_0, fn_1)
+#define STACK_PUSH3(fn_0, fn_1, fn_2)        u6a_vm_stack_push3(&stack_ctx, fn_0, fn_1, fn_2)
+#define STACK_PUSH4(fn_0, fn_1, fn_2, fn_3)  u6a_vm_stack_push4(&stack_ctx, fn_0, fn_1, fn_2, fn_3)
+#define STACK_POP()                                               \
+    vm_var_fn_free(top);                                          \
+    top = u6a_vm_stack_top(&stack_ctx);                           \
+    u6a_vm_stack_pop(&stack_ctx)
+#define STACK_XCH(fn_0)                      u6a_vm_stack_xch(&stack_ctx, fn_0)
 
 #define POOL_ALLOC1(v1)             u6a_vm_pool_alloc1(&pool_ctx, v1)
 #define POOL_ALLOC2(v1, v2)         u6a_vm_pool_alloc2(&pool_ctx, v1, v2)
@@ -381,7 +359,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                     arg = top;
                     ACC_FN_REF(u6a_vf_d1_s, POOL_ALLOC2(func, arg));
                 } else {
-                    STACK_XCH(acc);
+                    acc = STACK_XCH(acc);
                 }
                 break;
             case u6a_vo_del:
