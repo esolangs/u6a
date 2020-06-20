@@ -27,6 +27,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <arpa/inet.h>
+#include <setjmp.h>
 
 static struct u6a_vm_ins*      text;
 static        uint32_t         text_len;
@@ -35,6 +36,7 @@ static        uint32_t         rodata_len;
 static        bool             force_exec;
 static struct u6a_vm_stack_ctx stack_ctx;
 static struct u6a_vm_pool_ctx  pool_ctx;
+static        jmp_buf          jmp_ctx;
 
 static const struct u6a_vm_ins text_subst[] = {
     { .opcode = u6a_vo_la  },
@@ -181,10 +183,10 @@ u6a_runtime_init(struct u6a_runtime_options* options) {
     if (UNLIKELY(rodata_len != fread(rodata, sizeof(char), rodata_len, options->istream))) {
         goto runtime_init_failed;
     }
-    if (UNLIKELY(!u6a_vm_stack_init(&stack_ctx, options->stack_segment_size, err_runtime))) {
+    if (UNLIKELY(!u6a_vm_stack_init(&stack_ctx, options->stack_segment_size, &jmp_ctx, err_runtime))) {
         goto runtime_init_failed;
     }
-    if (UNLIKELY(!u6a_vm_pool_init(&pool_ctx, options->pool_size, text_len, err_runtime))) {
+    if (UNLIKELY(!u6a_vm_pool_init(&pool_ctx, options->pool_size, text_len, &jmp_ctx, err_runtime))) {
         goto runtime_init_failed;
     }
     stack_ctx.pool_ctx = &pool_ctx;
@@ -209,6 +211,9 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
     int current_char = EOF;
     struct u6a_vm_var_tuple tuple;
     void* cont;
+    if (setjmp(jmp_ctx)) {
+        goto runtime_error;
+    }
     while (true) {
         switch (ins->opcode) {
             case u6a_vo_app:

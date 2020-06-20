@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <setjmp.h>
 
 struct u6a_vm_stack {
     struct u6a_vm_stack* prev;
@@ -34,14 +35,15 @@ struct u6a_vm_stack {
 };
 
 struct u6a_vm_stack_ctx {
-    struct u6a_vm_stack* active_stack;
-    uint32_t             stack_seg_len;
-    struct u6a_vm_pool_ctx*  pool_ctx;
-    const char*          err_stage;
+    struct u6a_vm_stack*    active_stack;
+    uint32_t                stack_seg_len;
+    struct u6a_vm_pool_ctx* pool_ctx;
+    jmp_buf*                jmp_ctx;
+    const char*             err_stage;
 };
 
 bool
-u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, const char* err_stage);
+u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, jmp_buf* jmp_ctx, const char* err_stage);
 
 static inline struct u6a_vm_var_fn
 u6a_vm_stack_top(struct u6a_vm_stack_ctx* ctx) {
@@ -49,45 +51,45 @@ u6a_vm_stack_top(struct u6a_vm_stack_ctx* ctx) {
     if (UNLIKELY(vs->top == UINT32_MAX)) {
         vs = vs->prev;
         if (UNLIKELY(vs == NULL)) {
-            return U6A_VM_VAR_FN_EMPTY;
+            U6A_VM_ERR(ctx);
         }
         ctx->active_stack = vs;
     }
     return vs->elems[vs->top];
 }
 
-bool
+void
 u6a_vm_stack_push1_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0);
 
-static inline bool
+static inline void
 u6a_vm_stack_push1(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0) {
     struct u6a_vm_stack* vs = ctx->active_stack;
     if (LIKELY(vs->top + 1 < ctx->stack_seg_len)) {
         vs->elems[++vs->top] = v0;
-        return true;
+    } else {
+        u6a_vm_stack_push1_split_(ctx, v0);
     }
-    return u6a_vm_stack_push1_split_(ctx, v0);
 }
 
-bool
+void
 u6a_vm_stack_push2_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1);
 
-static inline bool
+static inline void
 u6a_vm_stack_push2(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1) {
     struct u6a_vm_stack* vs = ctx->active_stack;
     if (LIKELY(vs->top + 2 < ctx->stack_seg_len)) {
         vs->elems[++vs->top] = v0;
         vs->elems[++vs->top] = v1;
-        return true;
+    } else {
+        u6a_vm_stack_push2_split_(ctx, v0, v1);
     }
-    return u6a_vm_stack_push2_split_(ctx, v0, v1);
 }
 
-bool
+void
 u6a_vm_stack_push3_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                           struct u6a_vm_var_fn v2);
 
-static inline bool
+static inline void
 u6a_vm_stack_push3(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                    struct u6a_vm_var_fn v2)
 {
@@ -96,16 +98,16 @@ u6a_vm_stack_push3(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct
         vs->elems[++vs->top] = v0;
         vs->elems[++vs->top] = v1;
         vs->elems[++vs->top] = v2;
-        return true;
+    } else {
+        return u6a_vm_stack_push3_split_(ctx, v0, v1, v2);
     }
-    return u6a_vm_stack_push3_split_(ctx, v0, v1, v2);
 }
 
-bool
+void
 u6a_vm_stack_push4_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                           struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3);
 
-static inline bool
+static inline void
 u6a_vm_stack_push4(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                    struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3)
 {
@@ -115,21 +117,20 @@ u6a_vm_stack_push4(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct
         vs->elems[++vs->top] = v1;
         vs->elems[++vs->top] = v2;
         vs->elems[++vs->top] = v3;
-        return true;
+    } else {
+        u6a_vm_stack_push4_split_(ctx, v0, v1, v2, v3);
     }
-    return u6a_vm_stack_push4_split_(ctx, v0, v1, v2, v3);
 }
 
-bool
+void
 u6a_vm_stack_pop_split_(struct u6a_vm_stack_ctx* ctx);
 
-static inline bool
+static inline void
 u6a_vm_stack_pop(struct u6a_vm_stack_ctx* ctx) {
     struct u6a_vm_stack* vs = ctx->active_stack;
-    if (LIKELY(vs->top-- != UINT32_MAX)) {
-        return true;
+    if (UNLIKELY(vs->top-- == UINT32_MAX)) {
+        u6a_vm_stack_pop_split_(ctx);
     }
-    return u6a_vm_stack_pop_split_(ctx);
 }
 
 struct u6a_vm_var_fn

@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 bool
-u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_len, const char* err_stage) {
+u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_len, jmp_buf* jmp_ctx, const char* err_stage) {
     const uint32_t pool_size = sizeof(struct u6a_vm_pool) + pool_len * sizeof(struct u6a_vm_pool_elem);
     ctx->active_pool = malloc(pool_size);
     if (UNLIKELY(ctx->active_pool == NULL)) {
@@ -49,6 +49,7 @@ u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_le
     ctx->active_pool->pos = UINT32_MAX;
     ctx->holes->pos = UINT32_MAX;
     ctx->pool_len = pool_len;
+    ctx->jmp_ctx = jmp_ctx;
     ctx->err_stage = err_stage;
     return true;
 }

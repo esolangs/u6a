@@ -110,4 +110,6 @@ struct u6a_vm_var_tuple {
 #define U6A_VM_MIN_POOL_SIZE                16
 #define U6A_VM_MAX_POOL_SIZE              ( 16 * 1024 * 1024 )
 
+#define U6A_VM_ERR(ctx)                     longjmp(*(ctx)->jmp_ctx, -1)
+
 #endif

@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <setjmp.h>
 
 struct u6a_vm_pool_elem {
     struct u6a_vm_var_tuple values;
@@ -51,6 +52,7 @@ struct u6a_vm_pool_ctx {
     struct u6a_vm_stack_ctx*      stack_ctx;
     uint32_t                      pool_len;
     uint32_t                      fstack_top;
+    jmp_buf*                      jmp_ctx;
     const char*                   err_stage;
 };
 
@@ -88,7 +90,7 @@ u6a_vm_pool_elem_alloc_(struct u6a_vm_pool_ctx* ctx) {
     if (ctx->holes->pos == UINT32_MAX) {
         if (UNLIKELY(++pool->pos == ctx->pool_len)) {
             u6a_err_vm_pool_oom(ctx->err_stage);
-            return NULL;
+            U6A_VM_ERR(ctx);
         }
         new_elem = pool->elems + pool->pos;
     } else {
@@ -101,22 +103,16 @@ u6a_vm_pool_elem_alloc_(struct u6a_vm_pool_ctx* ctx) {
 static inline struct u6a_vm_pool_elem*
 u6a_vm_pool_elem_dup_(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_pool_elem* elem) {
     struct u6a_vm_pool_elem* new_elem = u6a_vm_pool_elem_alloc_(ctx);
-    if (UNLIKELY(new_elem == NULL)) {
-        return NULL;
-    }
     *new_elem = *elem;
     return new_elem;
 }
 
 bool
-u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_len, const char* err_stage);
+u6a_vm_pool_init(struct u6a_vm_pool_ctx* ctx, uint32_t pool_len, uint32_t ins_len, jmp_buf* jmp_ctx, const char* err_stage);
 
 static inline uint32_t
 u6a_vm_pool_alloc1(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1) {
     struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
-    if (UNLIKELY(elem == NULL)) {
-        return UINT32_MAX;
-    }
     elem->values = (struct u6a_vm_var_tuple) { .v1.fn = v1, .v2.ptr = NULL };
     elem->flags = 0;
     return elem - ctx->active_pool->elems;
@@ -125,9 +121,6 @@ u6a_vm_pool_alloc1(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1) {
 static inline uint32_t
 u6a_vm_pool_alloc2(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1, struct u6a_vm_var_fn v2) {
     struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
-    if (UNLIKELY(elem == NULL)) {
-        return UINT32_MAX;
-    }
     elem->values = (struct u6a_vm_var_tuple) { .v1.fn = v1, .v2.fn = v2 };
     elem->flags = 0;
     return elem - ctx->active_pool->elems;
@@ -136,9 +129,6 @@ u6a_vm_pool_alloc2(struct u6a_vm_pool_ctx* ctx, struct u6a_vm_var_fn v1, struct 
 static inline uint32_t
 u6a_vm_pool_alloc2_ptr(struct u6a_vm_pool_ctx* ctx, void* v1, void* v2) {
     struct u6a_vm_pool_elem* elem = u6a_vm_pool_elem_alloc_(ctx);
-    if (UNLIKELY(elem == NULL)) {
-        return UINT32_MAX;
-    }
     elem->values = (struct u6a_vm_var_tuple) { .v1.ptr = v1, .v2.ptr = v2 };
     elem->flags = U6A_VM_POOL_ELEM_HOLDS_PTR;
     return elem - ctx->active_pool->elems;

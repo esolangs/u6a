@@ -130,7 +130,7 @@ u6a_err_bad_bc_ver(const char* stage, const char* filename, int ver_major, int v
 
 U6A_COLD void
 u6a_err_vm_pool_oom(const char* stage) {
-    fprintf(stderr, "%s: [%s] VM object pool memory exhausted.\n", stage, prog_name);
+    fprintf(stderr, "%s: [%s] VM object pool memory exhausted.\n", prog_name, stage);
 }
 
 U6A_COLD void

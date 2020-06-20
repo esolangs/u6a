@@ -83,8 +83,9 @@ vm_stack_free(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs) {
 }
 
 bool
-u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, const char* err_stage) {
+u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, jmp_buf* jmp_ctx, const char* err_stage) {
     ctx->stack_seg_len = stack_seg_len;
+    ctx->jmp_ctx = jmp_ctx;
     ctx->err_stage = err_stage;
     ctx->active_stack = vm_stack_create(ctx, NULL, UINT32_MAX);
     return ctx->active_stack != NULL;
@@ -92,34 +93,32 @@ u6a_vm_stack_init(struct u6a_vm_stack_ctx* ctx, uint32_t stack_seg_len, const ch
 
 // Boilerplates below. If only we have C++ templates here... (macros just make things nastier)
 
-U6A_HOT bool
+U6A_HOT void
 u6a_vm_stack_push1_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0) {
     struct u6a_vm_stack* vs = ctx->active_stack;
     ctx->active_stack = vm_stack_create(ctx, vs, 0);
     if (UNLIKELY(ctx->active_stack == NULL)) {
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     ++vs->refcnt;
     ctx->active_stack->elems[0] = v0;
-    return true;
 }
 
-U6A_HOT bool
+U6A_HOT void
 u6a_vm_stack_push2_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1) {
     struct u6a_vm_stack* vs = ctx->active_stack;
     ctx->active_stack = vm_stack_create(ctx, vs, 1);
     if (UNLIKELY(ctx->active_stack == NULL)) {
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     ++vs->refcnt;
     ctx->active_stack->elems[0] = v0;
     ctx->active_stack->elems[1] = v1;
-    return true;
 }
 
-U6A_HOT bool
+U6A_HOT void
 u6a_vm_stack_push3_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                           struct u6a_vm_var_fn v2)
 {
@@ -127,16 +126,15 @@ u6a_vm_stack_push3_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0,
     ctx->active_stack = vm_stack_create(ctx, vs, 2);
     if (UNLIKELY(ctx->active_stack == NULL)) {
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     ++vs->refcnt;
     ctx->active_stack->elems[0] = v0;
     ctx->active_stack->elems[1] = v1;
     ctx->active_stack->elems[2] = v2;
-    return true;
 }
 
-U6A_HOT bool
+U6A_HOT void
 u6a_vm_stack_push4_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct u6a_vm_var_fn v1,
                           struct u6a_vm_var_fn v2, struct u6a_vm_var_fn v3)
 {
@@ -144,35 +142,33 @@ u6a_vm_stack_push4_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0,
     ctx->active_stack = vm_stack_create(ctx, vs, 3);
     if (UNLIKELY(ctx->active_stack == NULL)) {
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     ++vs->refcnt;
     ctx->active_stack->elems[0] = v0;
     ctx->active_stack->elems[1] = v1;
     ctx->active_stack->elems[2] = v2;
     ctx->active_stack->elems[3] = v3;
-    return true;
 }
 
-U6A_HOT bool
+U6A_HOT void
 u6a_vm_stack_pop_split_(struct u6a_vm_stack_ctx* ctx) {
     struct u6a_vm_stack* vs = ctx->active_stack;
     ctx->active_stack = vs->prev;
     if (UNLIKELY(ctx->active_stack == NULL)) {
         u6a_err_stack_underflow(ctx->err_stage);
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     if (--ctx->active_stack->refcnt > 0) {
         ctx->active_stack = vm_stack_dup(ctx, ctx->active_stack);
     }
     if (UNLIKELY(ctx->active_stack == NULL)) {
         ctx->active_stack = vs;
-        return false;
+        U6A_VM_ERR(ctx);
     }
     free(vs);
     --ctx->active_stack->top;
-    return true;
 }
 
 U6A_HOT struct u6a_vm_var_fn
@@ -183,12 +179,12 @@ u6a_vm_stack_xch_split_(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0) {
     struct u6a_vm_stack* prev = vs->prev;
     if (UNLIKELY(prev == NULL)) {
         u6a_err_stack_underflow(ctx->err_stage);
-        return U6A_VM_VAR_FN_EMPTY;
+        U6A_VM_ERR(ctx);
     }
     if (--prev->refcnt > 0) {
         prev = vm_stack_dup(ctx, prev);
         if (UNLIKELY(prev == NULL)) {
-            return U6A_VM_VAR_FN_EMPTY;
+            U6A_VM_ERR(ctx);
         }
     }
     if (vs->top == 0) {
