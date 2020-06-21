@@ -45,7 +45,7 @@ vm_stack_dup(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_stack* vs) {
     struct u6a_vm_stack* dup_stack = malloc(size);
     if (UNLIKELY(dup_stack == NULL)) {
         u6a_err_bad_alloc(ctx->err_stage, size);
-        return NULL;
+        U6A_VM_ERR(ctx);
     }
     memcpy(dup_stack, vs, sizeof(struct u6a_vm_stack) + (vs->top + 1) * sizeof(struct u6a_vm_var_fn));
     dup_stack->refcnt = 0;

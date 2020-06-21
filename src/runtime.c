@@ -283,9 +283,6 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         VM_JMP(0x03);
                     case u6a_vf_c:
                         cont = u6a_vm_stack_save(&stack_ctx);
-                        if (UNLIKELY(cont == NULL)) {
-                            goto runtime_error;
-                        }
                         STACK_PUSH2(VM_VAR_JMP, vm_var_fn_addref(arg));
                         ACC_FN_REF(u6a_vf_c1, POOL_ALLOC2_PTR(cont, ins));
                         VM_JMP(0x03);
