@@ -71,9 +71,9 @@ static const char* info_runtime = "runtime";
 #define STACK_PUSH2(fn_0, fn_1)              u6a_vm_stack_push2(&stack_ctx, fn_0, fn_1)
 #define STACK_PUSH3(fn_0, fn_1, fn_2)        u6a_vm_stack_push3(&stack_ctx, fn_0, fn_1, fn_2)
 #define STACK_PUSH4(fn_0, fn_1, fn_2, fn_3)  u6a_vm_stack_push4(&stack_ctx, fn_0, fn_1, fn_2, fn_3)
-#define STACK_POP()                                               \
+#define STACK_POP(var)                                            \
     vm_var_fn_free(top);                                          \
-    top = u6a_vm_stack_top(&stack_ctx);                           \
+    var = top = u6a_vm_stack_top(&stack_ctx);                     \
     u6a_vm_stack_pop(&stack_ctx)
 #define STACK_XCH(fn_0)                      u6a_vm_stack_xch(&stack_ctx, fn_0)
 
@@ -222,8 +222,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                 }
                 goto do_apply;
             case u6a_vo_la:
-                STACK_POP();
-                func = top;
+                STACK_POP(func);
                 arg = acc;
                 do_apply:
                 switch (func.token.fn) {
@@ -239,6 +238,7 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         vm_var_fn_addref(tuple.v1.fn);
                         vm_var_fn_addref(tuple.v2.fn);
                         vm_var_fn_addref(arg);
+                        // Tail call elimination
                         if (ins - text == 0x03) {
                             STACK_PUSH3(arg, tuple.v2.fn, tuple.v1.fn);
                         } else {
@@ -265,9 +265,8 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                         break;
                     case u6a_vf_f:
                         ins = text + func.ref;
-                        STACK_POP();
+                        STACK_POP(acc);
                         STACK_PUSH2(U6A_VM_VAR_FN_REF(u6a_vf_j, func.ref), vm_var_fn_addref(arg));
-                        acc = top;
                         VM_JMP(0x03);
                     case u6a_vf_c:
                         cont = u6a_vm_stack_save(&stack_ctx);
@@ -341,11 +340,10 @@ u6a_runtime_execute(FILE* restrict istream, FILE* restrict ostream) {
                 break;
             case u6a_vo_xch:
                 if (UNLIKELY(acc.token.fn == u6a_vf_d)) {
-                    STACK_POP();
-                    vm_var_fn_addref(func = top);
-                    STACK_POP();
-                    vm_var_fn_addref(arg = top);
-                    ACC_FN_REF(u6a_vf_d1_s, POOL_ALLOC2(func, arg));
+                    STACK_POP(func);
+                    vm_var_fn_addref(func);
+                    STACK_POP(arg);
+                    ACC_FN_REF(u6a_vf_d1_s, POOL_ALLOC2(func, vm_var_fn_addref(arg)));
                 } else {
                     acc = STACK_XCH(acc);
                 }
