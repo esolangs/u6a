@@ -50,18 +50,18 @@ static const uint32_t text_subst_len = sizeof(text_subst) / sizeof(struct u6a_vm
 static const char* err_runtime = "runtime error";
 static const char* info_runtime = "runtime";
 
-#define CHECK_BC_HEADER_VER(file_header)                          \
+#define CHECK_BC_HEADER_VER(file_header)       \
     ( (file_header).ver_major == U6A_VER_MAJOR && (file_header).ver_minor == U6A_VER_MINOR )
 
-#define ACC_FN_REF(fn_, ref_)                                     \
+#define ACC_FN_REF(fn_, ref_)                  \
     acc = U6A_VM_VAR_FN_REF(fn_, ref_)
-#define VM_JMP(dest)                                              \
-    ins = text + (dest);                                          \
+#define VM_JMP(dest)                           \
+    ins = text + (dest);                       \
     continue
-#define CHECK_FORCE(log_func, err_val)                            \
-    if (!force_exec) {                                            \
-        log_func(err_runtime, err_val);                           \
-        goto runtime_error;                                       \
+#define CHECK_FORCE(log_func, err_val)         \
+    if (!force_exec) {                         \
+        log_func(err_runtime, err_val);        \
+        goto runtime_error;                    \
     }
 
 #define VM_VAR_JMP       U6A_VM_VAR_FN_REF(u6a_vf_j, ins - text)
@@ -71,11 +71,11 @@ static const char* info_runtime = "runtime";
 #define STACK_PUSH2(fn_0, fn_1)              u6a_vm_stack_push2(&stack_ctx, fn_0, fn_1)
 #define STACK_PUSH3(fn_0, fn_1, fn_2)        u6a_vm_stack_push3(&stack_ctx, fn_0, fn_1, fn_2)
 #define STACK_PUSH4(fn_0, fn_1, fn_2, fn_3)  u6a_vm_stack_push4(&stack_ctx, fn_0, fn_1, fn_2, fn_3)
-#define STACK_POP(var)                                            \
-    vm_var_fn_free(top);                                          \
-    var = top = u6a_vm_stack_top(&stack_ctx);                     \
-    u6a_vm_stack_pop(&stack_ctx)
 #define STACK_XCH(fn_0)                      u6a_vm_stack_xch(&stack_ctx, fn_0)
+#define STACK_POP(var)                         \
+    vm_var_fn_free(top);                       \
+    var = top = u6a_vm_stack_top(&stack_ctx);  \
+    u6a_vm_stack_pop(&stack_ctx)
 
 #define POOL_ALLOC1(v1)             u6a_vm_pool_alloc1(&pool_ctx, v1)
 #define POOL_ALLOC2(v1, v2)         u6a_vm_pool_alloc2(&pool_ctx, v1, v2)

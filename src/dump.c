@@ -32,9 +32,9 @@
 #define F_2B_DUP_2   "%02x%02x %02x%02x "
 #define F_2B_DUP_8   F_2B_DUP_2 F_2B_DUP_2 F_2B_DUP_2 F_2B_DUP_2
 
-#define fprintf_check(os, format, ...)           \
-    if (fprintf(os, format, __VA_ARGS__) < 0) {  \
-        return false;                            \
+#define fprintf_check(os, format, ...)                     \
+    if (UNLIKELY(fprintf(os, format, __VA_ARGS__) < 0)) {  \
+        return false;                                      \
     }
 
 static inline bool

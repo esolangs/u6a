@@ -46,7 +46,7 @@
 
 #define U6A_MAGIC     0xDC  /* Latin 'U' with diaeresis */
 #define U6A_VER_MAJOR 0x00
-#define U6A_VER_MINOR 0x00
+#define U6A_VER_MINOR 0x01
 #define U6A_VER_PATCH 0x00
 
 #endif
