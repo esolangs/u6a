@@ -1,5 +1,5 @@
 ##
- # square.exp - Test whether a "square" program works on this u6a build
+ # quines.exp - Test whether quines programs from CUAN works on this u6a build
  # 
  # Copyright (C) 2020  CismonX <admin@cismon.net>
  #
@@ -18,26 +18,32 @@
  #
 
 set tool "default"
-set timeout 5
+set timeout 20
 
-# The following code is a modified version of ftp://ftp.madore.org/pub/madore/unlambda/CUAN/Square.unl
-# Written by Panu Kalliokoski <Panu.Kalliokoski@nokia.com>
-set src_stub "`r```si`k``s``s`kk`si``s``si`k``s`k`s`k``sk``sr`k.oir``si%s`k`ki"
-set src_segment ""
-set expected "\n"
-for { set i 0 } { $i < 20 } { incr i } {
-    set src_segment "$src_segment``si"
-    set line [ string repeat "o" [ expr $i + 1 ] ]
-    set square [ string repeat "$line\n" [ expr $i + 1 ] ]
-    set expected "$expected\n$square"
-    u6a_run [ format $src_stub $src_segment ] - - 0
+puts "Downloading files..."
+exec wget --quiet "http://www.eleves.ens.fr:8080/home/madore/unlambda-2.0.0.tar.gz"
+puts "Extracting archive..."
+exec tar -zxvf "unlambda-2.0.0.tar.gz"
+
+set pwd [ pwd ]
+set quines [ glob -directory "$pwd/unlambda-2.0.0/CUAN/quine/" "*.unl" ]
+foreach filename $quines {
+    set fp [ open $filename r ]
+    set data [ read $fp ]
+    close $fp
+    u6a_run "$filename" - "-p5000000" 0
+    match_max [ string length $data ]
     expect {
-        -ex "$expected" {
-            pass "case $i ok!"
+        -ex "$data" {
+            pass "$filename ok!"
         }
         default {
-            fail "case $i fails!"
+            fail "$filename fails!"
         }
     }
     u6a_stop 0
 }
+
+puts "Cleaning up..."
+file delete "$pwd/unlambda-2.0.0.tar.gz"
+file delete -force "$pwd/unlambda-2.0.0"

@@ -36,6 +36,9 @@ u6a
 *.sum
 site.*
 
+# tests
+unlambda-2.0.0*
+
 # gcov
 *.gcov
 *.gcda

@@ -31,7 +31,7 @@ for { set i 0 } { $i < [ llength $rand_str_list ] } { incr i } {
     set rand_str [ lindex $rand_str_list $i ]
     send -- "$rand_str\r"
     expect {
-        $rand_str {
+        -ex "$rand_str" {
             pass "case $i ok!"
         }
         default {

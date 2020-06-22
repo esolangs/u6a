@@ -18,7 +18,8 @@
  # along with this program.  If not, see <https://www.gnu.org/licenses/>.
  #
 
-U6A_BYTECODE=`echo $5 | $1 - | base64 $3`
+CMD=`[[ "$5" == "/"* ]] && echo 'cat' || echo 'echo'`
+U6A_BYTECODE=`$CMD $5 | $1 - | base64 $3`
 test -z $U6A_BYTECODE && exit -1
 cat <(echo $U6A_BYTECODE | base64 $4) <(test $6 && cat $6) | $2 -
 
