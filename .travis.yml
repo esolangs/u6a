@@ -38,4 +38,4 @@ script:
 # - whatis u6a u6ac      # broken on macOS...
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - test $TRAVIS_OS_NAME = osx && true || bash <(curl -s https://codecov.io/bash)

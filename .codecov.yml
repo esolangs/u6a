@@ -1,3 +1,7 @@
 ignore:
   - "src/logging.c"
   - "src/mnemonic.c"
+coverage:
+  range: 55..95
+  round: down
+  precision: 2
