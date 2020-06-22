@@ -23,7 +23,7 @@ set timeout 20
 puts "Downloading files..."
 exec wget --quiet "http://www.eleves.ens.fr:8080/home/madore/unlambda-2.0.0.tar.gz"
 puts "Extracting archive..."
-exec tar -zxvf "unlambda-2.0.0.tar.gz"
+exec tar -zxvf "unlambda-2.0.0.tar.gz" >& /dev/null
 
 set pwd [ pwd ]
 set quines [ glob -directory "$pwd/unlambda-2.0.0/CUAN/quine/" "*.unl" ]
