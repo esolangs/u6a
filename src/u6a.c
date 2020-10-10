@@ -49,7 +49,6 @@ struct arg_options {
 };
 
 static const char* err_toplevel = "error";
-static const char* info_toplevel = "info";
 
 static void
 arg_options_destroy(struct arg_options* options) {

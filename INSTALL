@@ -1,0 +1,37 @@
+============================================================================
+Copyright (C) 2020  CismonX <admin@cismon.net>
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty, provided the copyright notice and
+this notice are preserved. This file is offered as-is, without any warranty.
+============================================================================
+
+U6A INSTALLATION GUIDELINES:
+
+1. (If not already) Install the required build tools.
+
+    sudo apt install build-essential automake
+
+2. (If you want to run tests) Install DejaGnu.
+
+    sudo apt install dejagnu
+
+3. Generate configuration script.
+
+    autoreconf --install
+
+4. Execute configuration script with desired options.
+
+    ./configure --prefix=$HOME
+
+5. Compile source code and generate executables.
+
+    make
+
+6. (Optional) Run tests.
+
+    make check
+
+7. Install executables and man pages.
+
+    make install

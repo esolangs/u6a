@@ -86,6 +86,7 @@ process_options(struct arg_options* options, int argc, char** argv) {
                 break;
             case 'O':
                 optimize_level = optarg ? optarg[0] : '1';
+                break;
             case 'p':
                 if (UNLIKELY(options->output_file_prefix)) {
                     break;

@@ -1,8 +1,16 @@
+<!--
+Copyright (C) 2020  CismonX <admin@cismon.net>
+
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty, provided the copyright notice and
+this notice are preserved. This file is offered as-is, without any warranty.
+-->
+
 # u6a
 
 [![Travis CI](https://travis-ci.com/esolangs/u6a.svg)](https://travis-ci.com/esolangs/u6a)
 [![Codecov](https://codecov.io/gh/esolangs/u6a/branch/master/graphs/badge.svg)](https://codecov.io/gh/esolangs/u6a)
-[![LICENSE](https://img.shields.io/badge/licence-GPLv3-blue.svg)](LICENSE)
+[![LICENSE](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 Implementation of Unlambda, an esoteric programming language.
 
@@ -14,26 +22,9 @@ Ideas behind this implementation can be found [here](https://github.com/esolangs
 
 ## Getting Started
 
-Building:
+To install u6a from source, see [INSTALL](INSTALL).
 
-```bash
-# (If not already) Install the required build tools.
-sudo apt install build-essential automake
-# (If you want to run tests) Install DejaGnu.
-sudo apt install dejagnu
-# Generate configuration script.
-autoreconf --install
-# Execute configuration script with desired options.
-./configure --prefix=$HOME
-# Compile source code and generate executables.
-make
-# (Optional) Run tests.
-make check
-# (Optional) Install executables and man pages.
-make install
-```
-
-Usage:
+Usage (See [**u6ac**(1)](man/u6ac.1) and [**u6a**(1)](man/u6a.1) man pages for details):
 
 ```bash
 # Compile an Unlambda source file into bytecode.
@@ -41,8 +32,6 @@ u6ac -o foo.unl.bc foo.unl
 # Execute the bytecode file.
 u6a foo.unl.bc
 ```
-
-See [**u6ac**(1)](man/u6ac.1) and [**u6a**(1)](man/u6a.1) man pages for details.
 
 ## Future Plans
 

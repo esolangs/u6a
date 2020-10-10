@@ -1,24 +1,49 @@
 .TH "U6A" "1" "Jan 30, 2020" "0.1.0" "U6A User Manual"
 .
 .SH NAME
-u6ac \- Bytecode compiler for the Unlambda programming language
+u6ac - Bytecode compiler for the Unlambda programming language
 .
 .SH SYNOPSIS
-\fBu6ac\fR [\fIoptions\fR] \fIsource\-file\fR
+.B u6ac
+.RI [ options ]
+.I source-file
 .
 .SH DESCRIPTION
-Read and compile Unlambda code from the given \fIsource\-file\fR, or \fBSTDIN\fR if "-" is given. Compilation result is saved in a special bytecode format, which can be executed with \fBu6a\fR(1).
+Read and compile Unlambda code from the given
+.IR source-file ,
+or
+.B STDIN
+if "-" is given.
+Compilation result is saved in a special bytecode format, which can be executed with
+.BR u6a (1).
 .
 .SH OPTIONS
 .TP
-\fB\-o\fR, \fB\-\-output\fR=\fIout\-file\fR
-Save compiled bytecode to \fIout\-file\fR, defaults to \fIsource\-file\fR name with ".bc" (".bc.dump" if \fB\-S\fR option is enabled) suffix, or \fBSTDOUT\fR if the source file is read from \fBSTDIN\fR.
+\fB\-o\fR, \fB\-\-output\fR=\fIout-file\fR
+Save compiled bytecode to
+.IR out-file ,
+defaults to
+.I source-file
+name with ".bc" (".bc.dump" if 
+.B \-S
+option is enabled) suffix, or
+.B STDOUT
+if the source file is read from
+.BR STDIN .
 .TP
-\fB\-\-add\-prefix\fR[=\fIprefix\-string\fR]
-Add \fIprefix\-string\fR to the beginning of \fIout\-file\fR. Defaults to "#!/usr/bin/env u6a\\n".
+\fB\-\-add\-prefix\fR[=\fIprefix-string\fR]
+Add
+.I prefix-string
+to the beginning of
+.IR out-file .
+Defaults to "#!/usr/bin/env u6a\\n".
 .TP
-\fB\-O[\fIoptimization\-level\fR]
-Compile-time optimization level. \fB\-O0\fR: Turn off optimization. \fB\-O1\fR(default): Turn on basic optimizations, including constant folding & propagation, dead code elimination, etc.
+\fB\-O[\fIoptimization-level\fR]
+Compile-time optimization level.
+.BR \-O0 :
+Turn off optimization.
+.BR \-O1 (default):
+Turn on basic optimizations, including constant folding & propagation, dead code elimination, etc.
 .TP
 \fB\-\-syntax\-only\fR
 Only check for lexical and syntactic correctness of the source file, and skips bytecode generation.
@@ -27,7 +52,12 @@ Only check for lexical and syntactic correctness of the source file, and skips b
 Produce mnemonic pseudo-instructions instead of bytecode.
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
-Print extra debug messages to \fBSTDOUT\fR. When this option is enabled, \fIout\-file\fR should not be \fBSTDOUT\fR.
+Print extra debug messages to
+.BR STDOUT .
+When this option is enabled,
+.I out-file
+should not be
+.BR STDOUT .
 .TP
 \fB\-H\fR, \fB\-\-help\fR
 Prints help message, then exit.
@@ -45,16 +75,23 @@ Comments:
 Text in line comments is not restricted to ASCII only. UTF-8 format is also supported.
 .TP
 Function names:
-Charactor X in functions \fB.X\fR and \fB?X\fR must be printable ASCII or "\\n" (beware if you are using Windows-style newlines), and are case-sensitive. Other builtin function names are case-insensitive.
+Charactor X in functions 
+.B .X
+and
+.B ?X
+must be printable ASCII or "\\n" (beware if you are using Windows-style newlines), and are case-sensitive.
+Other builtin function names are case-insensitive.
 .SS Code Size
-Unlambda code size should not be larger than 4MiB (not counting comments and whitespaces). You may change this limit in \fIdefs.h\fR and rebuild u6a for larger code to compile.
+Unlambda code size should not be larger than 4MiB (not counting comments and whitespaces).
+You may change this limit in
+.B defs.h
+and rebuild u6a for larger code to compile.
 .
 .SH SEE ALSO
-\fBu6a\fR(1)
+.BR u6a (1)
 .
 .SH COPYRIGHT
-Copyright (C)  2020  CismonX <admin@cismon.net>.
-.br
-Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
-.br
-A copy of the license is included in \fIman/LICENSE\fR.
+Copyright (c)  2020  CismonX <admin@cismon.net>
+.PP
+Copying and distribution of this file, with or without modification, are permitted in any medium without royalty, provided the copyright notice and this notice are preserved.
+This file is offered as-is, without any warranty.

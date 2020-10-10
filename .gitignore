@@ -1,12 +1,22 @@
-# IDE
+# 
+# Copyright (C) 2020  CismonX <admin@cismon.net>
+# 
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty, provided the copyright notice and
+# this notice are preserved. This file is offered as-is, without any warranty.
+# 
+
+# IDE & plugins
 .idea/
 .vscode/
+.ccls*
 
 # Autotools
 *.cache/
 .deps/
 config.*
 configure
+configure.scan
 Makefile.in
 Makefile
 depcomp

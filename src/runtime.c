@@ -48,7 +48,6 @@ static const struct u6a_vm_ins text_subst[] = {
 static const uint32_t text_subst_len = sizeof(text_subst) / sizeof(struct u6a_vm_ins);
 
 static const char* err_runtime = "runtime error";
-static const char* info_runtime = "runtime";
 
 #define CHECK_BC_HEADER_VER(file_header)       \
     ( (file_header).ver_major == U6A_VER_MAJOR && (file_header).ver_minor == U6A_VER_MINOR )

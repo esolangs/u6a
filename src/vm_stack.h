@@ -99,7 +99,7 @@ u6a_vm_stack_push3(struct u6a_vm_stack_ctx* ctx, struct u6a_vm_var_fn v0, struct
         vs->elems[++vs->top] = v1;
         vs->elems[++vs->top] = v2;
     } else {
-        return u6a_vm_stack_push3_split_(ctx, v0, v1, v2);
+        u6a_vm_stack_push3_split_(ctx, v0, v1, v2);
     }
 }
 

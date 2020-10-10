@@ -90,7 +90,7 @@ struct u6a_vm_var_fn {
 
 #define U6A_VM_VAR_FN_REF(fn_, ref_) (struct u6a_vm_var_fn) { .token.fn = (fn_), .ref = (ref_) }
 #define U6A_VM_VAR_FN_EMPTY          (struct u6a_vm_var_fn) { 0 }
-#define U6A_VM_VAR_FN_IS_EMPTY(fn_)  ( ((union u6a_vm_var)(fn_)).ptr == NULL )
+#define U6A_VM_VAR_FN_IS_EMPTY(fn_)  ( fn_.token.fn == 0 )
 
 union u6a_vm_var {
     struct u6a_vm_var_fn fn;
