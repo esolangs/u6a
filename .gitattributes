@@ -8,4 +8,6 @@
 
 # Attributes for GitHub Linguist
 *.h linguist-language=c
-*.exp linguist-language=tcl
+tests/* linguist-detectable=false
+configure.ac linguist-detectable=false
+Makefile.am linguist-detectable=false

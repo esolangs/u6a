@@ -44,7 +44,6 @@ script:
   - $GCOV_BIN src/*.c
   - sudo make install
   - command -v u6a u6ac
-# - whatis u6a u6ac      # broken on macOS...
 
 after_success:
   - test $TRAVIS_OS_NAME = osx && true || bash <(curl -s https://codecov.io/bash)

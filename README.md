@@ -10,7 +10,7 @@ this notice are preserved. This file is offered as-is, without any warranty.
 
 [![Travis CI](https://travis-ci.com/esolangs/u6a.svg)](https://travis-ci.com/esolangs/u6a)
 [![Codecov](https://codecov.io/gh/esolangs/u6a/branch/master/graphs/badge.svg)](https://codecov.io/gh/esolangs/u6a)
-[![LICENSE](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue.svg)](LICENSE)
+[![LICENSE](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](LICENSE)
 
 Implementation of Unlambda, an esoteric programming language.
 

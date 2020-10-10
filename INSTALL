@@ -32,6 +32,6 @@ U6A INSTALLATION GUIDELINES:
 
     make check
 
-7. Install executables and man pages.
+7. (Optional) Install executables and man pages.
 
     make install
