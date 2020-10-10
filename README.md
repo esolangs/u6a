@@ -6,7 +6,7 @@ permitted in any medium without royalty, provided the copyright notice and
 this notice are preserved. This file is offered as-is, without any warranty.
 -->
 
-# u6a
+# U6a
 
 [![Travis CI](https://travis-ci.com/esolangs/u6a.svg)](https://travis-ci.com/esolangs/u6a)
 [![Codecov](https://codecov.io/gh/esolangs/u6a/branch/master/graphs/badge.svg)](https://codecov.io/gh/esolangs/u6a)
@@ -16,13 +16,15 @@ Implementation of Unlambda, an esoteric programming language.
 
 ## Description
 
-The u6a project provides a bytecode compiler and a runtime system for the [Unlambda](http://www.madore.org/~david/programs/unlambda/) programming language.
+The U6a project provides a bytecode compiler and a runtime system for the [Unlambda](http://www.madore.org/~david/programs/unlambda/) programming language.
 
 Ideas behind this implementation can be found [here](https://github.com/esolangs/u6a/wiki/Developer's-Notes-on-Implementing-Unlambda).
 
+U6a is free software. You can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
 ## Getting Started
 
-To install u6a from source, see [INSTALL](INSTALL).
+To install U6a from source, see [INSTALL](INSTALL).
 
 Usage (See [**u6ac**(1)](man/u6ac.1) and [**u6a**(1)](man/u6a.1) man pages for details):
 

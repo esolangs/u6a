@@ -8,3 +8,4 @@
 
 # Attributes for GitHub Linguist
 *.h linguist-language=c
+*.exp linguist-language=tcl
