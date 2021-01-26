@@ -7,7 +7,7 @@ dnl this notice are preserved. This file is offered as-is, without any warranty.
 dnl 
 
 AC_PREREQ([2.69])
-AC_INIT([u6a], [0.01], [bug-report@cismon.net])
+AC_INIT([u6a], [0.1.2], [bug-report@cismon.net])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_SRCDIR([src/u6a.c])
 AC_CONFIG_HEADERS([config.h])
