@@ -98,6 +98,6 @@ const char*
 u6a_logging_get_prog_name_();
 
 #define u6a_info_verbose(stage, info_message, ...) \
-    u6a_info_verbose_("%s: [%s] " info_message ".\n", u6a_logging_get_prog_name_(), stage, ##__VA_ARGS__)
+    u6a_info_verbose_("%s: [%s] " info_message ".\n", u6a_logging_get_prog_name_(), stage, __VA_ARGS__)
 
 #endif

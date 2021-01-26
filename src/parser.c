@@ -75,7 +75,7 @@ u6a_parse(struct u6a_token* token_arr, uint32_t token_len, struct u6a_ast_node**
     }
     free(pstack);
     *ast_arr = ast;
-    u6a_info_verbose(info_parse, "completed");
+    u6a_info_verbose(info_parse, "%s", "completed");
     return true;
 
     parse_failed:
